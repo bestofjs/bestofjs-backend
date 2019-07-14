@@ -39,7 +39,9 @@ module.exports = createTask("build-projects-json-files", async context => {
   }
 
   async function buildNpmList(allProjects) {
-    const projects = allProjects.filter(project => !!project.npm);
+    const projects = allProjects
+      .filter(project => !!project.npm)
+      .filter(project => project.trends.daily !== undefined);
     const count = projects.length;
     const date = new Date();
     await saveJSON({ date, count, projects }, "npm-projects.json");
