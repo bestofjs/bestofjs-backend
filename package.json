@@ -4,7 +4,7 @@
   "description": "Best of JavaScript backend applications",
   "main": "index.js",
   "scripts": {
-    "daily": "node cli/tasks/daily && npm run deploy:prod",
+    "daily": "node cli/tasks/daily-process && npm run deploy:prod",
     "deploy:prod": "firebase deploy --project prod",
     "deploy:dev": "firebase deploy --project dev",
     "lint": "eslint **/*.js",
