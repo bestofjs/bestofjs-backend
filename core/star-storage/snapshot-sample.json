@@ -1,0 +1,82 @@
+{
+  "_id": {
+    "$oid": "5d21a82fbd0069a8a78b9929"
+  },
+  "fullName": "microsoft/web-build-tools",
+  "project": {
+    "$oid": "5d0e24c4ff53cd0015862c88"
+  },
+  "year": 2019,
+  "months": [
+    {
+      "month": 6,
+      "snapshots": [
+        {
+          "day": 23,
+          "stars": 831
+        },
+        {
+          "day": 24,
+          "stars": 833
+        },
+        {
+          "day": 25,
+          "stars": 837
+        },
+        {
+          "day": 26,
+          "stars": 847
+        },
+        {
+          "day": 27,
+          "stars": 848
+        },
+        {
+          "day": 28,
+          "stars": 852
+        },
+        {
+          "day": 29,
+          "stars": 853
+        },
+        {
+          "day": 30,
+          "stars": 854
+        }
+      ]
+    },
+    {
+      "month": 7,
+      "snapshots": [
+        {
+          "day": 1,
+          "stars": 854
+        },
+        {
+          "day": 2,
+          "stars": 857
+        },
+        {
+          "day": 3,
+          "stars": 859
+        },
+        {
+          "day": 4,
+          "stars": 860
+        },
+        {
+          "day": 5,
+          "stars": 864
+        },
+        {
+          "day": 6,
+          "stars": 864
+        },
+        {
+          "day": 7,
+          "stars": 865
+        }
+      ]
+    }
+  ]
+}

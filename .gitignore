@@ -1,0 +1,14 @@
+.env
+node_modules
+*.log
+/build
+.DS_Store
+package-lock.json
+shrinkwrap.yaml
+.vscode
+.firebase
+_private
+
+# Testing Now.sh hosting
+api/
+now.json
