@@ -2,9 +2,9 @@
   "name": "bestofjs-backend",
   "version": "0.1.0",
   "description": "Best of JavaScript backend applications",
-  "main": "index.js",
   "scripts": {
     "daily": "node cli/tasks/daily-process && npm run deploy:prod",
+    "daily-npm-update": "node cli/tasks/daily-package-data-process",
     "deploy:prod": "firebase deploy --project prod",
     "deploy:dev": "firebase deploy --project dev",
     "lint": "eslint **/*.js",
