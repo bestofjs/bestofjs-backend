@@ -56,25 +56,3 @@ const updateGithubProject = ({ client, starStorage }) => async (
   }
   return { meta: { updated, snapshotAdded, stars: stars } };
 };
-
-// async function addSnapshotIfNeeded(project, stars, options) {
-//   const { logger, tracker } = options;
-
-//   const today = new Date();
-//   const { year, month, day } = normalizeDate(today);
-
-//   const snapshot = tracker.findSnapshot({ year, month, day });
-
-//   if (snapshot !== undefined) {
-//     // No snapshot to add, a snapshot has already been taken today!
-//     logger.verbose(
-//       `A snapshot already exists for today (${snapshot} stars)`,
-//       project.name
-//     );
-//     return { created: false, previous: snapshot };
-//   } else {
-//     logger.verbose("Adding a snapshot", { year, month, day, stars });
-//     tracker.addSnapshot({ year, month, day, stars });
-//     return { created: true };
-//   }
-// }

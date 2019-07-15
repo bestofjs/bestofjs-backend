@@ -105,11 +105,9 @@ function createTaskRunner(options = {}) {
     const mongo_uri = process.env[mongo_key];
     if (!mongo_uri)
       throw new Error(`"${mongo_key}" env. variable is not defined.`);
-    logger.info("Connecting to", {
-      uri: mongo_uri.replace(/(mongodb:\/\/)(.+):(.+)(@.+)/, "$1***@***$4")
-    });
+    logger.debug(`Connecting to the database "${mongo_key}"`);
     await mongoose.connect(mongo_uri, { useNewUrlParser: true });
-    logger.info("Connected to the database");
+    logger.info(`Connected to the database "${mongo_key}"`);
   };
 
   const finish = () => {
@@ -128,8 +126,7 @@ function createTaskRunner(options = {}) {
     run: async task => {
       if (typeof task !== "function")
         throw new Error("Task runner needs a function!");
-      // try {
-      // await start();
+
       const starCollection = models.Snapshot.collection;
       const starStorage = createStarStorage(starCollection);
 
@@ -145,12 +142,6 @@ function createTaskRunner(options = {}) {
         getGitHubClient,
         saveJSON
       });
-      // } catch (error) {
-      //   console.error(error); // eslint-disable-line
-      //   logger.error("Unexpected error", { error: error.message });
-      // } finally {
-      //   finish();
-      // }
     }
   };
 }

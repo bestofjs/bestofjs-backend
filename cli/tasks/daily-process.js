@@ -1,6 +1,6 @@
 const { runTasks } = require("../task-runner");
 
-const updateProjects = require("./projects/update/update-github-data.task");
+const updateProjects = require("./projects/github-data/update-github-data.task");
 const buildProjects = require("./projects/build/build-projects-files.task");
 const updateHeroes = require("./hall-of-fame/update/update-github-heroes.task");
 const buildHeroes = require("./hall-of-fame/build/build-heroes.task");
