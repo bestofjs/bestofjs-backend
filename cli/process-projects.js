@@ -2,16 +2,30 @@ const pMap = require("p-map");
 const prettyMs = require("pretty-ms");
 const { isNumber } = require("lodash");
 
-async function processProjects({ handler, query = {}, options = {}, context }) {
+async function processProjects({
+  handler,
+  query = {},
+  sort,
+  limit,
+  concurrency = 5,
+  options = {},
+  context
+}) {
   const { logger } = context;
-  const { concurrency = 5 } = options;
+  if (options.concurrency) {
+    concurrency = options.concurrency; // `--concurrency` CLI option overrides the function argument
+  }
+  if (options.limit) {
+    limit = options.limit;
+  }
 
   const actualQuery = normalizeQuery(getQuery(query, options));
 
   const projects = await fetchProjects({
     query: actualQuery,
     context,
-    options
+    sort,
+    limit
   });
 
   const count = projects.length;
@@ -75,8 +89,12 @@ const sumMetaReducer = (acc, [key, value]) => {
   };
 };
 
-async function fetchProjects({ query, context, options: { limit = 0 } }) {
-  // return [{ name: "React" }, { name: "Vue.js" }, { name: "Angular" }];
+async function fetchProjects({
+  query,
+  context,
+  limit = 0,
+  sort = { createdAt: -1 }
+}) {
   const {
     models: { Project },
     logger
@@ -84,18 +102,18 @@ async function fetchProjects({ query, context, options: { limit = 0 } }) {
   logger.verbose("Fetching project", query, { limit });
 
   return await Project.find(query)
-    .select({
-      name: 1,
-      description: 1,
-      override_description: 1,
-      url: 1,
-      override_url: 1,
-      github: 1,
-      npm: 1,
-      icon: 1
-    })
+    // .select({
+    //   name: 1,
+    //   description: 1,
+    //   override_description: 1,
+    //   url: 1,
+    //   override_url: 1,
+    //   github: 1,
+    //   npm: 1,
+    //   icon: 1
+    // })
     .populate("tags")
-    .sort({ createdAt: -1 })
+    .sort(sort)
     .limit(limit);
   // .lean(); we use `toString()` Mongoose models
 }

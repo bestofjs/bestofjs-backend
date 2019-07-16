@@ -34,9 +34,10 @@ const schema = new mongoose.Schema(fields, {
 });
 
 schema.methods.toString = function() {
-  return `${this.github.login} (${this.github.name}) ${this._id} ${
-    this.github.followers
-  } followers, ${this.npm.count} packages`;
+  const npmPart = this.npm.username
+    ? `${this.npm.username} (${this.npm.count} packages)`
+    : "No packages";
+  return `${this.github.login} (${this.github.name}) ${this._id} ${this.github.followers} followers, ${npmPart}`;
 };
 
 const model = mongoose.model("Hero", schema);

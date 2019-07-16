@@ -1,15 +1,5 @@
 const got = require("got");
-const packageJson = require("package-json");
-const { omit } = require("lodash");
-const debug = require("debug")("package-data-client");
-
-function getNpmRegistryData(packageName) {
-  debug("Fetching package.json data", packageName);
-  return packageJson(packageName).catch(err => {
-    const msg = err.message || "";
-    throw new Error(`Invalid response from npm registry ${packageName} ${msg}`);
-  });
-}
+const debug = require("debug")("package-api");
 
 async function getPackageQualityData(packageName) {
   const { name, scope } = parsePackageName(packageName);
@@ -29,7 +19,8 @@ async function getNpmsData(packageName) {
   const { body } = await got(url, { json: true }).catch(() => {
     throw new Error(`Invalid response from ${url}`);
   });
-  debug(omit(body, ["collected.metadata.readme"]));
+  // debug(omit(body, ["collected.metadata.readme"]));
+  debug(body.evaluation);
   return body;
 }
 
@@ -54,7 +45,7 @@ async function getBundleData(packageName) {
     packageName
   )}`;
   const headers = {
-    "x-bundlephobia-user": "bestofjs.org"
+    "x-bundlephobia-user": "bestofjs.com"
   };
   const options = {
     headers,
@@ -73,7 +64,7 @@ async function getPackageSizeData(packageName, version) {
     packageName
   )}@${version}`;
   const headers = {
-    "x-packagephobia-user": "bestofjs.org"
+    "x-packagephobia-user": "bestofjs.com"
   };
   const options = {
     headers,
@@ -86,11 +77,12 @@ async function getPackageSizeData(packageName, version) {
       "(no message)"}`;
     return { error: { message } };
   });
+  debug("Response from PackagePhobia", body);
+  if (!body) throw new Error(`No response from PackagePhobia ${packageName}`);
   return body;
 }
 
 module.exports = {
-  getNpmRegistryData,
   getPackageQualityData,
   getNpmsData,
   formatDependencies,

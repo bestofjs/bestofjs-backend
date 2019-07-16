@@ -87,7 +87,7 @@ const schema = new mongoose.Schema(fields, {
 });
 
 schema.methods.toString = function() {
-  return `Project ${this.name} ${this._id}`;
+  return `Project ${this.github.full_name} ${this._id}`;
 };
 
 // For some projects, don't use the GitHub description that is not really relevant

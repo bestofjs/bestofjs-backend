@@ -1,9 +1,11 @@
 const pProps = require("p-props");
 const { mapValues, get } = require("lodash");
 
+const createNpmClient = require("../../../../core/npm/npm-api-client");
+const npmClient = createNpmClient();
+
 const { createTask } = require("../../../task-runner");
 const {
-  getNpmRegistryData,
   getNpmsData,
   getBundleData,
   getPackageSizeData,
@@ -15,7 +17,9 @@ module.exports = createTask("update-package-data", async context => {
 
   await processProjects({
     handler: updatePackageData(context),
-    query: { deprecated: false }
+    query: { deprecated: false, "npm.name": { $ne: "" } },
+    concurrency: 1,
+    limit: 100
   });
 });
 
@@ -43,7 +47,9 @@ const updatePackageData = context => async project => {
 const fetchNpmRegistryData = ({ logger }) => async project => {
   logger.debug("Fetch data from NPM registry");
   const packageName = project.npm.name;
-  const { version, dependencies } = await getNpmRegistryData(packageName);
+  const { version, dependencies } = await npmClient.fetchPackageInfo(
+    packageName
+  );
   const npmData = {
     name: packageName, // don't use result.name here, we don't want to override name because of scoped packages!
     version,
@@ -54,7 +60,7 @@ const fetchNpmRegistryData = ({ logger }) => async project => {
 };
 
 const fetchNpmsData = ({ logger }) => async project => {
-  logger.debug("Fetch scoore from npms.io API");
+  logger.debug("Fetch score from npms.io API");
   const {
     score: { detail, final }
   } = await getNpmsData(project.npm.name);

@@ -1,16 +1,30 @@
 const pMap = require("p-map");
 const prettyMs = require("pretty-ms");
 
-async function processHeroes({ handler, query = {}, options = {}, context }) {
+async function processHeroes({
+  handler,
+  query = {},
+  sort,
+  limit,
+  concurrency = 5,
+  options = {},
+  context
+}) {
   const { logger } = context;
-  const { concurrency = 5 } = options;
+  if (options.concurrency) {
+    concurrency = options.concurrency; // `--concurrency` CLI option overrides the function argument
+  }
+  if (options.limit) {
+    limit = options.limit;
+  }
 
   const actualQuery = getQuery(query, options);
 
   const heroes = await fetchHeroes({
     query: actualQuery,
-    context,
-    options
+    sort,
+    limit,
+    context
   });
 
   const count = heroes.length;
@@ -66,17 +80,17 @@ const metaReducer = (acc, val) => ({
 
 async function fetchHeroes({
   query,
-  context,
-  options: { limit = 0, sort = { "github.followers": -1 } }
+  limit = 0,
+  sort = { "github.followers": -1 },
+  context
 }) {
   const {
     models: { Hero },
     logger
   } = context;
-  logger.verbose("Fetching Hall of Fame members", query, { limit });
+  logger.verbose("Fetching Hall of Fame members", { query, limit, sort });
 
   return await Hero.find(query)
-    .find()
     .populate({ path: "projects", select: "name" })
     .sort(sort)
     .limit(limit);
