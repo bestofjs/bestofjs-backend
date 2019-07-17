@@ -1,12 +1,10 @@
 const { createLogger, format, transports } = require("winston");
-// const pino = require('pino')
 const mongoose = require("mongoose");
-require("dotenv").config();
-
 const fs = require("fs-extra");
 const path = require("path");
 const prettyBytes = require("pretty-bytes");
 const prettyMs = require("pretty-ms");
+require("dotenv").config();
 
 const models = require("../core/models");
 const createClient = require("../core/github/github-api-client");
@@ -16,6 +14,10 @@ const { parseCommandLineOptions } = require("./utils");
 const processProjects = require("./process-projects");
 const processHeroes = require("./process-heroes");
 
+/*
+Run the given tasks `{name, handler}` in series
+the whole process stops if one of the tasks fail.
+*/
 async function runTasks(tasks) {
   tasks = Array.isArray(tasks) ? tasks : [tasks];
   const options = parseCommandLineOptions();
@@ -46,8 +48,7 @@ async function runTasks(tasks) {
 
   async function runTask({ name, handler }) {
     const t0 = new Date();
-    await runner.run(handler);
-
+    await runner.run(handler, options);
     logger.info(`End of "${name}"`, { duration: getDuration(t0) });
   }
 }
@@ -63,32 +64,28 @@ function createTask(name, handler) {
 
 function createTaskRunner(options = {}) {
   let { dbEnv = "v2", logLevel, readonly, limit } = options;
-  if (!logLevel) {
-    logLevel = limit === 1 ? "debug" : "verbose";
-  }
 
-  const logger = createLogger({
-    level: logLevel,
-    format: format.combine(
-      format.colorize(),
-      // format.splat(),
-      format.simple()
-      // format.prettyPrint()
-      // format.json()
-    ),
-    transports: [new transports.Console()]
-  });
+  const getLogger = () => {
+    const env = process.env.NODE_ENV;
+    const defaultLogLevel = env === "production" ? "info" : "verbose";
+    if (!logLevel) {
+      logLevel = limit === 1 ? "debug" : defaultLogLevel;
+    }
+
+    const logger = createLogger({
+      level: logLevel,
+      format: format.combine(format.colorize(), format.simple()),
+      transports: [new transports.Console()]
+    });
+    return logger;
+  };
+
+  const logger = getLogger();
 
   const getGitHubClient = () => {
     const accessToken = process.env.GITHUB_ACCESS_TOKEN;
     const client = createClient(accessToken);
     return client;
-  };
-
-  const context = {
-    logger,
-    models,
-    readonly
   };
 
   const saveJSON = async (json, fileName) => {
@@ -115,6 +112,16 @@ function createTaskRunner(options = {}) {
     logger.info("Database disconnected");
   };
 
+  const starCollection = models.Snapshot.collection;
+  const starStorage = createStarStorage(starCollection);
+
+  const context = {
+    logger,
+    models,
+    readonly,
+    starStorage
+  };
+
   return {
     getContext() {
       return context;
@@ -123,25 +130,23 @@ function createTaskRunner(options = {}) {
     start,
     finish,
 
-    run: async task => {
+    run: async (task, options) => {
       if (typeof task !== "function")
         throw new Error("Task runner needs a function!");
 
-      const starCollection = models.Snapshot.collection;
-      const starStorage = createStarStorage(starCollection);
-
-      await task({
-        logger,
-        models,
-        starStorage,
-        readonly,
-        // inject the `context` in `processProjects` provided to the customer
-        processProjects: params =>
-          processProjects({ ...params, context, options }),
-        processHeroes: params => processHeroes({ ...params, context, options }),
-        getGitHubClient,
-        saveJSON
-      });
+      await task(
+        {
+          ...context,
+          // inject the `context` in `processProjects` provided to the customer
+          processProjects: params =>
+            processProjects({ ...params, context, options }),
+          processHeroes: params =>
+            processHeroes({ ...params, context, options }),
+          getGitHubClient,
+          saveJSON
+        },
+        options
+      );
     }
   };
 }

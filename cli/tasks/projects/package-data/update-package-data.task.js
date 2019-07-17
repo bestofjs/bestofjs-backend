@@ -1,5 +1,6 @@
 const pProps = require("p-props");
 const { mapValues, get } = require("lodash");
+const pTimeout = require("p-timeout");
 
 const createNpmClient = require("../../../../core/npm/npm-api-client");
 const npmClient = createNpmClient();
@@ -31,7 +32,14 @@ const updatePackageData = context => async project => {
     bundle: fetchBundleData,
     packageSize: fetchPackageSizeData
   };
-  const result = await pProps(mapValues(requests), fn => fn(context)(project));
+  const timeout = 2000;
+  const result = await pProps(mapValues(requests), (fetchFn, key) =>
+    pTimeout(
+      fetchFn(context)(project),
+      timeout,
+      `"${key}" request timed out after ${timeout} ms`
+    )
+  );
   Object.entries(result).map(([key, value]) => {
     if (value) {
       project[key] = value;

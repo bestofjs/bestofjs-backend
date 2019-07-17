@@ -2,7 +2,7 @@ const packageJson = require("package-json");
 const scrapeIt = require("scrape-it");
 const debug = require("debug")("npm-client");
 
-function createNpmClient() {
+function createNpmClient({ timeout = 1000 } = {}) {
   return {
     async fetchPackageInfo(packageName) {
       debug("Fetching package.json data", packageName);

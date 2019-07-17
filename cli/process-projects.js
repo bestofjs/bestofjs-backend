@@ -99,7 +99,7 @@ async function fetchProjects({
     models: { Project },
     logger
   } = context;
-  logger.verbose("Fetching project", query, { limit });
+  logger.verbose("Fetching projects to process", query, { limit });
 
   return await Project.find(query)
     // .select({
