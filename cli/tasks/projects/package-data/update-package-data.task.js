@@ -19,8 +19,7 @@ module.exports = createTask("update-package-data", async context => {
   await processProjects({
     handler: updatePackageData(context),
     query: { deprecated: false, "npm.name": { $ne: "" } },
-    concurrency: 1,
-    limit: 100
+    concurrency: 1
   });
 });
 
@@ -49,7 +48,7 @@ const updatePackageData = context => async project => {
   if (!readonly) {
     await project.save();
   }
-  return { meta: { updated: true } };
+  return { meta: { updated: true, ...mapValues(result, value => !!value) } };
 };
 
 const fetchNpmRegistryData = ({ logger }) => async project => {
@@ -104,7 +103,7 @@ const fetchBundleData = ({ logger }) => async project => {
           version: bundleData.version
         };
     logger.debug("Bundle data to be saved", bundle);
-    return Object.assign({}, bundle, { updatedAt: new Date() });
+    return { ...bundle, updatedAt: new Date() };
   } catch (error) {
     logger.error(
       `Unable to get bundle data for ${project.toString()} ${error.message}`

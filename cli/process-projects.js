@@ -41,7 +41,6 @@ async function processProjects({
         );
       return result;
     } catch (error) {
-      console.error(error); // eslint-disable-line no-console
       logger.error(`Error while processing ${project.toString()}`, {
         error: error.message
       });
