@@ -54,7 +54,7 @@ const readProject = ({ starStorage }) => async project => {
   const data = {
     name: project.name,
     full_name: project.github.full_name,
-    description: getProjectDescription(project),
+    description: project.getDescription(),
     stars: project.github.stargazers_count,
     trends,
     tags: project.tags.map(tag => tag.code),

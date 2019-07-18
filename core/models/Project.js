@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const emojiRegex = require("emoji-regex");
 
 const fields = {
   name: String,
@@ -90,17 +91,32 @@ schema.methods.toString = function() {
   return `Project ${this.github.full_name} ${this._id}`;
 };
 
-// For some projects, don't use the GitHub description that is not really relevant
+/*
+Return project description, overriding the one provided by GitHub if necessary
+For some projects (Wee, Ve Element Admin...) the GitHub description that is not really relevant
+*/
 schema.methods.getDescription = function() {
-  const { full_name, description } = this.github;
-  const overrideDescriptionList = [
-    "apache/incubator-weex",
-    "PanJiaChen/vue-element-admin"
-  ];
-  const isNotRelevant = overrideDescriptionList.includes(full_name);
-  const overrideGithubDescription = isNotRelevant || !description;
-  return overrideGithubDescription ? this.description : description;
+  const { description: githubDescription } = this.github;
+
+  const overrideGithubDescription =
+    this.override_description || !githubDescription;
+
+  return overrideGithubDescription
+    ? this.description
+    : removeEmojis(githubDescription);
 };
+
+function removeEmojis(text) {
+  let result = text;
+
+  // STEP 1: detect emojis using `emoji-regexep` package
+  result = result.replace(emojiRegex(), "").trim();
+
+  // STEP 2: remove GitHub specific emojis (see Node.js repo: `Node.js JavaScript runtime :sparkles::turtle::rocket::sparkles:`)
+  result = result.replace(/(:([a-z_\d]+):)/g, "").trim();
+
+  return result;
+}
 
 const model = mongoose.model("Project", schema);
 
