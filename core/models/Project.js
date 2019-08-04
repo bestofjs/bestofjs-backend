@@ -30,6 +30,7 @@ const fields = {
     homepage: String,
     stargazers_count: Number,
     pushed_at: Date,
+    last_commit: Date,
     branch: String,
     packageJson: Boolean,
     owner_id: Number,

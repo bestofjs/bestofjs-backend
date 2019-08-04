@@ -33,9 +33,14 @@ module.exports = createTask("build-projects-json-files", async context => {
   function compactProjectData(project) {
     const compactData = {
       ...omit(project, ["version"]),
-      description: project.description.slice(0, 70)
+      description: truncate(project.description, 75)
     };
     return compactData;
+  }
+
+  function truncate(input, maxLength = 50) {
+    const isTruncated = input.length > maxLength;
+    return isTruncated ? `${input.slice(0, maxLength)}...` : input;
   }
 
   async function buildNpmList(allProjects) {
@@ -61,7 +66,7 @@ const readProject = ({ starStorage }) => async project => {
     owner_id: project.github.owner_id,
     contributor_count: project.github.contributor_count,
     commit_count: project.github.commit_count,
-    pushed_at: project.github.pushed_at
+    pushed_at: project.github.last_commit
   };
 
   const url = getProjectHomepage(project);
@@ -92,12 +97,6 @@ const readProject = ({ starStorage }) => async project => {
       success: true
     }
   };
-};
-
-const getProjectDescription = project => {
-  return project.github.description && !project.override_description
-    ? project.github.description
-    : project.description;
 };
 
 const getProjectHomepage = project => {
