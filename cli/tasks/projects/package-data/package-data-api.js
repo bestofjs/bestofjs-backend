@@ -1,5 +1,8 @@
 const got = require("got");
+const pTimeout = require("p-timeout");
 const debug = require("debug")("package-api");
+
+const timeout = 3000; // prevent API request from taking more than N milliseconds
 
 async function getPackageQualityData(packageName) {
   const { name, scope } = parsePackageName(packageName);
@@ -16,12 +19,16 @@ async function getNpmsData(packageName) {
     packageName
   )}`;
   debug("Fetching npms.io data", url);
-  const { body } = await got(url, { json: true }).catch(() => {
+  try {
+    const { body } = await pTimeout(got(url, { json: true }), timeout);
+    debug(body.evaluation);
+    return body;
+  } catch (error) {
+    if (error instanceof pTimeout.TimeoutError) {
+      throw error;
+    }
     throw new Error(`Invalid response from ${url}`);
-  });
-  // debug(omit(body, ["collected.metadata.readme"]));
-  debug(body.evaluation);
-  return body;
+  }
 }
 
 function formatDependencies(dependencies) {
@@ -52,11 +59,16 @@ async function getBundleData(packageName) {
     json: true
   };
   debug("Fetching", url);
-  const { body } = await got(url, options).catch(() => {
+  try {
+    const { body } = await pTimeout(got(url, options), timeout);
+    return body;
+  } catch (error) {
+    if (error instanceof pTimeout.TimeoutError) {
+      throw error;
+    }
     // Internal Server Errors (no valid JSON)
     throw new Error(`Invalid response from ${url}`);
-  });
-  return body;
+  }
 }
 
 async function getPackageSizeData(packageName, version) {
@@ -71,9 +83,12 @@ async function getPackageSizeData(packageName, version) {
     json: true
   };
   debug("Fetching", url);
-  const { body } = await got(url, options).catch(e => {
+  const { body } = await pTimeout(got(url, options), timeout).catch(error => {
+    if (error instanceof pTimeout.TimeoutError) {
+      throw error;
+    }
     // Internal Server Errors (no valid JSON) returned for several projects including `node-sass`
-    const message = `Invalid response from ${url} ${e.message ||
+    const message = `Invalid response from ${url} ${error.message ||
       "(no message)"}`;
     return { error: { message } };
   });

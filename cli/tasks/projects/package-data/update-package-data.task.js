@@ -1,6 +1,5 @@
 const pProps = require("p-props");
 const { mapValues, get } = require("lodash");
-const pTimeout = require("p-timeout");
 
 const createNpmClient = require("../../../../core/npm/npm-api-client");
 const npmClient = createNpmClient();
@@ -25,25 +24,29 @@ module.exports = createTask("update-package-data", async context => {
 
 const updatePackageData = context => async project => {
   const { logger, readonly } = context;
+
   const requests = {
     npm: fetchNpmRegistryData,
     npms: fetchNpmsData,
     bundle: fetchBundleData,
     packageSize: fetchPackageSizeData
   };
-  const timeout = 2000;
-  const result = await pProps(mapValues(requests), (fetchFn, key) =>
-    pTimeout(
-      fetchFn(context)(project),
-      timeout,
-      `"${key}" request timed out after ${timeout} ms`
-    )
-  );
-  Object.entries(result).map(([key, value]) => {
+
+  const result = await pProps(mapValues(requests), async (fetchFn, key) => {
+    try {
+      return await fetchFn(context)(project);
+    } catch (error) {
+      context.logger.debug(`Error fetching "${key}" data: ${error.message}`);
+      return null;
+    }
+  });
+  Object.entries(result).forEach(([key, value]) => {
+    // ignore `null` values coming from errors
     if (value) {
       project[key] = value;
     }
   });
+
   logger.debug(readonly ? "Readonly mode" : "Project saved", result);
   if (!readonly) {
     await project.save();
@@ -90,26 +93,19 @@ const fetchBundleData = ({ logger }) => async project => {
     previousVersion: get(project, "bundle.version") || "(nothing)"
   });
 
-  try {
-    const bundleData = await getBundleData(project.npm.name);
-    const isError = !!bundleData.error;
-    const bundle = isError
-      ? { errorMessage: bundleData.error.message || "Error!" }
-      : {
-          name: bundleData.name,
-          dependencyCount: bundleData.dependencyCount,
-          gzip: bundleData.gzip,
-          size: bundleData.size,
-          version: bundleData.version
-        };
-    logger.debug("Bundle data to be saved", bundle);
-    return { ...bundle, updatedAt: new Date() };
-  } catch (error) {
-    logger.error(
-      `Unable to get bundle data for ${project.toString()} ${error.message}`
-    );
-    return null;
-  }
+  const bundleData = await getBundleData(project.npm.name);
+  const isError = !!bundleData.error;
+  const bundle = isError
+    ? { errorMessage: bundleData.error.message || "Error!" }
+    : {
+        name: bundleData.name,
+        dependencyCount: bundleData.dependencyCount,
+        gzip: bundleData.gzip,
+        size: bundleData.size,
+        version: bundleData.version
+      };
+  logger.debug("Bundle data to be saved", bundle);
+  return { ...bundle, updatedAt: new Date() };
 };
 
 const isBundleUpdateNeeded = project => {
