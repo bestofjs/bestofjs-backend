@@ -57,14 +57,20 @@ const updatePackageData = context => async project => {
 const fetchNpmRegistryData = ({ logger }) => async project => {
   logger.debug("Fetch data from NPM registry");
   const packageName = project.npm.name;
-  const { version, dependencies } = await npmClient.fetchPackageInfo(
-    packageName
-  );
+
+  const {
+    version,
+    dependencies,
+    deprecated: deprecatedMessage
+  } = await npmClient.fetchPackageInfo(packageName);
+
   const npmData = {
     name: packageName, // don't use result.name here, we don't want to override name because of scoped packages!
     version,
-    dependencies: formatDependencies(dependencies)
+    dependencies: formatDependencies(dependencies),
+    deprecated: !!deprecatedMessage
   };
+
   logger.debug("NPM data", npmData);
   return npmData;
 };

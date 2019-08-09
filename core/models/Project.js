@@ -42,7 +42,8 @@ const fields = {
   npm: {
     name: String,
     version: String,
-    dependencies: [String]
+    dependencies: [String],
+    deprecated: Boolean
   },
   bundle: {
     name: String,
