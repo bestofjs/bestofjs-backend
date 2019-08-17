@@ -104,6 +104,7 @@ function extractOwnerId(url) {
 }
 
 function cleanGitHubDescription(description) {
+  if (!description) description = ""; // some projects return `null` (SocketIO, Handlebars...)
   description = removeGitHubEmojis(description);
   description = removeGenericEmojis(description);
   return description;
