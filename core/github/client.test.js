@@ -11,15 +11,17 @@ const fullName = "expressjs/express";
 async function main() {
   debug("Testing the GitHub API client");
 
-  // await testRepoInfo();
+  await testRepoInfo();
 
-  // await testRepoInfoFallback();
+  await testRepoDescription();
+
+  await testRepoInfoFallback();
 
   await testMovedRepo();
 
-  // await testContributorCount();
+  await testContributorCount();
 
-  // await testUserInfo();
+  await testUserInfo();
 }
 
 async function testMovedRepo() {
@@ -49,6 +51,12 @@ async function testUserInfo() {
   const userInfo = await client.fetchUserInfo("sindresorhus");
   debug(userInfo);
   assert.ok(userInfo.followers > 30000);
+}
+
+async function testRepoDescription() {
+  const { description } = await client.fetchRepoInfo("nodejs/node");
+  debug(description);
+  assert.equal(description, "Node.js runtime");
 }
 
 main();
