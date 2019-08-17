@@ -1,3 +1,5 @@
+const emojiRegex = require("emoji-regex/es2015");
+
 const queryRepoInfo = `query getRepoInfo($owner: String!, $name: String!) {
   repository(owner: $owner, name: $name) {
     name
@@ -47,7 +49,7 @@ const queryRepoInfo = `query getRepoInfo($owner: String!, $name: String!) {
       }
     }
   }
-}`
+}`;
 
 function extractRepoInfo(response) {
   const {
@@ -68,19 +70,19 @@ function extractRepoInfo(response) {
         }
       }
     }
-  } = response
+  } = response;
 
-  const topics = topicEdges.map(getTopic)
-  const last_commit = new Date(commitEdges[0].node.committedDate)
-  const owner_id = extractOwnerId(avatarUrl)
-  const full_name = `${login}/${name}`
+  const topics = topicEdges.map(getTopic);
+  const last_commit = new Date(commitEdges[0].node.committedDate);
+  const owner_id = extractOwnerId(avatarUrl);
+  const full_name = `${login}/${name}`;
 
   return {
     name,
     full_name,
     owner: login,
     owner_id,
-    description,
+    description: cleanGitHubDescription(description),
     homepage,
     created_at,
     pushed_at,
@@ -90,18 +92,33 @@ function extractRepoInfo(response) {
     archived: isArchived,
     commit_count,
     last_commit
-  }
+  };
 }
 
-const getTopic = edge => edge.node.topic.name
+const getTopic = edge => edge.node.topic.name;
 
 function extractOwnerId(url) {
-  const re = /u\/(.+)\?v=/
-  const parts = re.exec(url)
-  if (parts) return parts[1]
+  const re = /u\/(.+)\?v=/;
+  const parts = re.exec(url);
+  if (parts) return parts[1];
+}
+
+function cleanGitHubDescription(description) {
+  if (!description) description = ""; // some projects return `null` (SocketIO, Handlebars...)
+  description = removeGitHubEmojis(description);
+  description = removeGenericEmojis(description);
+  return description;
+}
+
+function removeGitHubEmojis(input) {
+  return input.replace(/(:([a-z_\d]+):)/g, "").trim();
+}
+
+function removeGenericEmojis(input) {
+  return input.replace(emojiRegex(), "").trim();
 }
 
 module.exports = {
   queryRepoInfo,
   extractRepoInfo
-}
+};
