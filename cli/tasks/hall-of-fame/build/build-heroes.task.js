@@ -1,4 +1,4 @@
-const { slugify } = require("../../../../core/helpers");
+const slugify = require("slugify");
 
 const { createTask } = require("../../../task-runner");
 
@@ -19,7 +19,9 @@ function heroToJSON(hero) {
     followers: hero.github.followers,
     blog: getHeroHomepage(hero),
     name: hero.github.name,
-    projects: hero.projects.map(project => slugify(project.name)),
+    projects: hero.projects.map(project =>
+      slugify(project.name, { lower: true, remove: /[.']/g })
+    ),
     bio: hero.short_bio,
     npm: hero.npm.username,
     modules: hero.npm.count
