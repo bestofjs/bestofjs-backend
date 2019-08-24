@@ -1,4 +1,5 @@
 const { omit } = require("lodash");
+const isAbsoluteURL = require("is-absolute-url");
 
 const { createTask } = require("../../../task-runner");
 
@@ -23,6 +24,9 @@ module.exports = createTask("build-projects-json-files", async context => {
       .filter(item => !!item) // remove null items that might be created if error occurred
       .filter(project => project.trends.daily !== undefined)
       .filter(project => project.stars >= 50) // show only projects with more than 50 stars
+      .filter(project =>
+        project.trends.yearly !== undefined ? project.trends.yearly > 0 : true
+      ) // show only projects with a positive delta
       .map(compactProjectData); // we don't need the `version` in `projects.json`
 
     logger.debug(`${projects.length} projects to include in the JSON file`);
@@ -99,6 +103,26 @@ const readProject = ({ starStorage }) => async project => {
   };
 };
 
+function isValidProjectURL(url) {
+  if (!isAbsoluteURL(url)) {
+    return false;
+  }
+
+  const invalidPatterns = [
+    "npmjs.com/", // the package page on NPM site is not a valid homepage!
+    "npm.im/",
+    "npmjs.org/",
+    "github.com/",
+    "twitter.com/"
+  ];
+
+  if (invalidPatterns.some(re => new RegExp(re).test(url))) {
+    return false;
+  }
+
+  return true;
+}
+
 const getProjectHomepage = project => {
   const {
     github: { homepage },
@@ -106,16 +130,8 @@ const getProjectHomepage = project => {
     override_url
   } = project;
   if (override_url) return url;
-  // npm package page is not a valid homepage!
-  const invalidPatterns = [
-    "npmjs.com/",
-    "npm.im/",
-    "npmjs.org/",
-    "github.com/",
-    "twitter.com/"
-  ];
-  const isValid = url => url.startsWith('http://') && !invalidPatterns.some(re => new RegExp(re).test(url));
-  return homepage && isValid(homepage) ? homepage : url;
+
+  return homepage && isValidProjectURL(homepage) ? homepage : url;
 };
 
 function fetchTags({ models: { Tag } }) {
