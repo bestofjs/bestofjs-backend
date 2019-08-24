@@ -114,7 +114,7 @@ const getProjectHomepage = project => {
     "github.com/",
     "twitter.com/"
   ];
-  const isValid = url => !invalidPatterns.some(re => new RegExp(re).test(url));
+  const isValid = url => url.startsWith('http://') && !invalidPatterns.some(re => new RegExp(re).test(url));
   return homepage && isValid(homepage) ? homepage : url;
 };
 
