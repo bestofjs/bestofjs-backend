@@ -27,6 +27,7 @@ module.exports = createTask("build-projects-json-files", async context => {
       .filter(project =>
         project.trends.yearly !== undefined ? project.trends.yearly > 0 : true
       ) // show only projects with a positive delta
+      .filter(project => !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
 
     logger.debug(`${projects.length} projects to include in the JSON file`);
@@ -143,3 +144,16 @@ function fetchTags({ models: { Tag } }) {
   };
   return Tag.find({}, fields).sort({ name: 1 });
 }
+
+const getYearsSinceLastCommit = project => {
+  const lastCommit = new Date(project.pushed_at);
+  return (today - lastCommit) / 1000 / 3600 / 24 / 365;
+};
+
+const today = new Date();
+
+const isInactiveProject = project => {
+  const delta = project.trends.yearly;
+  if (delta === undefined) return false;
+  return Math.floor(getYearsSinceLastCommit(project)) > 0 && delta < 100;
+};
