@@ -69,7 +69,8 @@ const readProject = ({ starStorage }) => async project => {
     trends,
     tags: project.tags.map(tag => tag.code),
     contributor_count: project.github.contributor_count,
-    pushed_at: project.github.last_commit
+    pushed_at: project.github.last_commit,
+    owner_id: project.github.owner_id
   };
 
   const url = getProjectHomepage(project);
@@ -92,8 +93,6 @@ const readProject = ({ starStorage }) => async project => {
   // Project custom icon (will be displayed instead of Github owner's avatar)
   if (project.icon && project.icon.url) {
     data.icon = project.icon.url;
-  } else {
-    data.owner_id = project.github.owner_id;
   }
 
   return {
