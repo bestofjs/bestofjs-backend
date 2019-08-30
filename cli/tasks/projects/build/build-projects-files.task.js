@@ -18,20 +18,24 @@ module.exports = createTask("build-projects-json-files", async context => {
   async function buildFullList(allProjects, context) {
     const { logger } = context;
 
-    const tags = await fetchTags(context);
+    const allTags = await fetchTags(context);
 
     const projects = allProjects
       .filter(item => !!item) // remove null items that might be created if error occurred
       .filter(project => project.trends.daily !== undefined)
       .filter(project => project.stars >= 50) // show only projects with more than 50 stars
       .filter(project =>
-        project.trends.yearly !== undefined ? project.trends.yearly > 0 : true
-      ) // show only projects with a positive delta
+        project.trends.yearly !== undefined ? project.trends.yearly > 10 : true
+      )
       .filter(project => !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
 
     logger.debug(`${projects.length} projects to include in the JSON file`);
     const date = new Date();
+
+    const tags = allTags.filter(
+      ({ code }) => !!findProjectByTagId(projects)(code)
+    );
     await saveJSON({ date, tags, projects }, "projects.json");
   }
 
@@ -143,6 +147,9 @@ function fetchTags({ models: { Tag } }) {
   };
   return Tag.find({}, fields).sort({ name: 1 });
 }
+
+const findProjectByTagId = projects => tagId =>
+  projects.find(({ tags }) => tags.includes(tagId));
 
 const getYearsSinceLastCommit = project => {
   const lastCommit = new Date(project.pushed_at);
