@@ -1,5 +1,4 @@
 const { omit } = require("lodash");
-const isAbsoluteURL = require("is-absolute-url");
 
 const { createTask } = require("../../../task-runner");
 
@@ -77,7 +76,7 @@ const readProject = ({ starStorage }) => async project => {
     owner_id: project.github.owner_id
   };
 
-  const url = getProjectHomepage(project);
+  const url = project.getURL();
   if (url) {
     data.url = url;
   }
@@ -105,37 +104,6 @@ const readProject = ({ starStorage }) => async project => {
       success: true
     }
   };
-};
-
-function isValidProjectURL(url) {
-  if (!isAbsoluteURL(url)) {
-    return false;
-  }
-
-  const invalidPatterns = [
-    "npmjs.com/", // the package page on NPM site is not a valid homepage!
-    "npm.im/",
-    "npmjs.org/",
-    "github.com/",
-    "twitter.com/"
-  ];
-
-  if (invalidPatterns.some(re => new RegExp(re).test(url))) {
-    return false;
-  }
-
-  return true;
-}
-
-const getProjectHomepage = project => {
-  const {
-    github: { homepage },
-    url,
-    override_url
-  } = project;
-  if (override_url) return url;
-
-  return homepage && isValidProjectURL(homepage) ? homepage : url;
 };
 
 function fetchTags({ models: { Tag } }) {

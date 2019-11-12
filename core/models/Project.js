@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const isAbsoluteURL = require("is-absolute-url");
+const isURL = require("validator/lib/isURL");
 
 const fields = {
   name: String,
@@ -89,7 +91,7 @@ const schema = new mongoose.Schema(fields, {
 });
 
 schema.methods.toString = function() {
-  return `Project ${this.github.full_name} ${this._id}`;
+  return `${this.github.full_name} ${this._id}`;
 };
 
 // For some projects, override the description from GitHub that is not really relevant
@@ -101,6 +103,36 @@ schema.methods.getDescription = function() {
     : this.description;
 };
 
+schema.methods.getURL = function() {
+  if (this.override_url) return this.url;
+  const { homepage } = this.github;
+
+  return homepage && isValidProjectURL(homepage) ? homepage : this.url;
+};
+
 const model = mongoose.model("Project", schema);
 
 module.exports = model;
+
+function isValidProjectURL(url) {
+  if (!isURL(url)) {
+    return false;
+  }
+  if (!isAbsoluteURL(url)) {
+    return false;
+  }
+
+  const invalidPatterns = [
+    "npmjs.com/", // the package page on NPM site is not a valid homepage!
+    "npm.im/",
+    "npmjs.org/",
+    "/github.com/", // GitHub repo page is not valid but GitHub sub-domains are valid
+    "twitter.com/"
+  ];
+
+  if (invalidPatterns.some(re => new RegExp(re).test(url))) {
+    return false;
+  }
+
+  return true;
+}
