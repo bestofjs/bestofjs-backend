@@ -48,6 +48,9 @@ const fields = {
     dependencies: [String],
     deprecated: Boolean
   },
+  downloads: {
+    monthly: Number
+  },
   bundle: {
     name: String,
     dependencyCount: Number,

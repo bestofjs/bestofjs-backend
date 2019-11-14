@@ -1,5 +1,7 @@
 const packageJson = require("package-json");
 const scrapeIt = require("scrape-it");
+const got = require("got");
+
 const debug = require("debug")("npm-client");
 
 function createNpmClient({ timeout = 1000 } = {}) {
@@ -13,6 +15,7 @@ function createNpmClient({ timeout = 1000 } = {}) {
         );
       });
     },
+
     async fetchUserInfo(npmUsername) {
       const t = +new Date();
       const url = `https://www.npmjs.com/~${npmUsername}?t=${t}`;
@@ -36,6 +39,12 @@ function createNpmClient({ timeout = 1000 } = {}) {
           `Unable to scrape ${npmUsername} page correctly ${username}`
         );
       return { username, count };
+    },
+
+    async fetchMonthlyDownloadCount(packageName) {
+      const url = `https://api.npmjs.org/downloads/point/last-month/${packageName}`;
+      const { body } = await got(url, { json: true });
+      return body.downloads;
     }
   };
 }

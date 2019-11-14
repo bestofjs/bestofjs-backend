@@ -29,7 +29,8 @@ const updatePackageData = context => async project => {
     npm: fetchNpmRegistryData,
     npms: fetchNpmsData,
     bundle: fetchBundleData,
-    packageSize: fetchPackageSizeData
+    packageSize: fetchPackageSizeData,
+    downloads: fetchDownloadData
   };
 
   const result = await pProps(mapValues(requests), async (fetchFn, key) => {
@@ -176,3 +177,13 @@ function isPackageSizeUpdateNeeded({ project, logger }) {
 // Format score numbers from packagequality.com and npms.im into percents, with no decimals
 // We may have no score to format (`ngx-datatable` cannot be found on packagequality.com)
 const formatScore = score => (score ? Math.round(score * 100) : 0);
+
+const fetchDownloadData = ({ logger }) => async project => {
+  const downloadCount = await npmClient.fetchMonthlyDownloadCount(
+    project.npm.name
+  );
+  const downloads = {
+    monthly: downloadCount
+  };
+  return downloads;
+};

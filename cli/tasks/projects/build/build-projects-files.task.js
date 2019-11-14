@@ -69,7 +69,7 @@ const readProject = ({ starStorage }) => async project => {
     full_name: project.github.full_name,
     description: project.getDescription(),
     stars: project.github.stargazers_count,
-    trends,
+    trends: omit(trends, "quarterly"),
     tags: project.tags.map(tag => tag.code),
     contributor_count: project.github.contributor_count,
     pushed_at: project.github.last_commit,
@@ -91,6 +91,9 @@ const readProject = ({ starStorage }) => async project => {
   if (project.npm && project.npm.name) {
     data.npm = project.npm.name;
     data.version = project.npm.version;
+    if (project.downloads) {
+      data.downloads = project.downloads.monthly;
+    }
   }
 
   // Project custom icon (will be displayed instead of Github owner's avatar)
