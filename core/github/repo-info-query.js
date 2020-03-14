@@ -74,7 +74,7 @@ function extractRepoInfo(response) {
 
   const topics = topicEdges.map(getTopic);
   const last_commit = new Date(commitEdges[0].node.committedDate);
-  const owner_id = extractOwnerId(avatarUrl);
+  const owner_id = extractOwnerIdFromAvatarURL(avatarUrl);
   const full_name = `${login}/${name}`;
 
   return {
@@ -97,8 +97,9 @@ function extractRepoInfo(response) {
 
 const getTopic = edge => edge.node.topic.name;
 
-function extractOwnerId(url) {
-  const re = /u\/(.+)\?v=/;
+// TODO: extract the user "short id" from the GraphQL query?
+function extractOwnerIdFromAvatarURL(url) {
+  const re = /\/u\/(.+)\?/;
   const parts = re.exec(url);
   if (parts) return parts[1];
 }
