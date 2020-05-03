@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Best of JavaScript backend applications",
   "scripts": {
+    "build": "node cli/tasks/daily-process",
     "daily": "node cli/tasks/daily-process && npm run deploy:prod",
     "daily-npm-update": "node cli/tasks/daily-package-data-process",
     "deploy:prod": "firebase deploy --project prod",
