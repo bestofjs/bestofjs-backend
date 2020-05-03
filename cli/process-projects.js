@@ -9,7 +9,7 @@ async function processProjects({
   limit,
   concurrency = 5,
   options = {},
-  context
+  context,
 }) {
   const { logger } = context;
   if (options.concurrency) {
@@ -25,12 +25,12 @@ async function processProjects({
     query: actualQuery,
     context,
     sort,
-    limit
+    limit,
   });
 
   const count = projects.length;
 
-  const mapper = async project => {
+  const mapper = async (project) => {
     logger.verbose(`Processing ${project.toString()}`);
     try {
       const result = await handler(project, context);
@@ -42,7 +42,7 @@ async function processProjects({
       return result;
     } catch (error) {
       logger.error(`Error while processing ${project.toString()}`, {
-        error: error.message
+        error: error.stack,
       });
       return { meta: { error: true }, data: undefined };
     }
@@ -59,7 +59,7 @@ async function processProjects({
       return {
         ...acc,
         data: acc.data.concat(val.data),
-        meta
+        meta,
       };
     },
     { meta: {}, data: [] }
@@ -73,7 +73,7 @@ async function processProjects({
 }
 
 const sumMetaReducer = (acc, [key, value]) => {
-  const convertResultToNumber = result => {
+  const convertResultToNumber = (result) => {
     if (result === false) return 0;
     if (result === true) return 1;
     if (!isNumber(result))
@@ -84,7 +84,7 @@ const sumMetaReducer = (acc, [key, value]) => {
 
   return {
     ...acc,
-    [key]: acc[key] ? acc[key] + number : number
+    [key]: acc[key] ? acc[key] + number : number,
   };
 };
 
@@ -92,11 +92,11 @@ async function fetchProjects({
   query,
   context,
   limit = 0,
-  sort = { createdAt: -1 }
+  sort = { createdAt: -1 },
 }) {
   const {
     models: { Project },
-    logger
+    logger,
   } = context;
   logger.verbose("Fetching projects to process", query, { limit });
 

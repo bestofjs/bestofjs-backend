@@ -7,7 +7,7 @@
 SOURCE="$SEMAPHORE_TRIGGER_SOURCE"
 BRANCH="$BRANCH_NAME"
 if [ "$SOURCE" == "scheduler" ] || [ "$SOURCE" == "manual" ] ; then
-  if [ "$BRANCH" == "master" ]; then
+  if [ "$BRANCH" == "master"] || [ "$BRANCH" == "develop" ]; then
     echo "Launching the daily build..."
     npm run daily
   fi
