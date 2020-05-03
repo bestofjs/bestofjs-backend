@@ -1,4 +1,4 @@
-const { createTask } = require("../../../task-runner");
+const { createTask } = require("../../task-runner");
 
 module.exports = createTask("update-github-data", async (context) => {
   const { getGitHubClient, starStorage, processProjects } = context;

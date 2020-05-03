@@ -1,17 +1,17 @@
 const got = require("got");
 const prettyBytes = require("pretty-bytes");
 
-const { createTask } = require("../../../task-runner");
+const { createTask } = require("../../task-runner");
 
-module.exports = createTask("check-url", async context => {
+module.exports = createTask("check-url", async (context) => {
   const { processProjects } = context;
   await processProjects({
     handler: checkProjectURL(context),
-    query: { disabled: false, deprecated: false }
+    query: { disabled: false, deprecated: false },
   });
 });
 
-const checkProjectURL = context => async project => {
+const checkProjectURL = (context) => async (project) => {
   const { logger, readonly } = context;
 
   const url = project.getURL();
@@ -31,7 +31,7 @@ const checkProjectURL = context => async project => {
 
   return {
     data: "OK",
-    meta: { success: true, invalid: !isAvailable }
+    meta: { success: true, invalid: !isAvailable },
   };
 };
 

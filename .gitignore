@@ -12,3 +12,4 @@ _private
 # Testing Now.sh hosting
 api/
 now.json
+.now

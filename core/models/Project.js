@@ -86,7 +86,8 @@ const fields = {
     vibrant: String
   },
   trends: Object,
-  twitter: String
+  twitter: String,
+  aliases: [String]
 };
 
 const schema = new mongoose.Schema(fields, {

@@ -1,4 +1,4 @@
-const { flattenDeep, orderBy, takeRight } = require("lodash");
+const { groupBy, flattenDeep, orderBy, takeRight } = require("lodash");
 const mongoose = require("mongoose");
 const { DateTime } = require("luxon");
 const ObjectId = mongoose.Types.ObjectId;
@@ -12,7 +12,7 @@ function createStarStorage(collection) {
       .find({ project: ObjectId(projectId) })
       .sort({ year: 1 })
       .toArray();
-    debug(docs.length ? `${docs.length} docs found` : `No docs found`);
+    debug(docs.length ? `${docs.length} docs found` : "No docs found");
     return docs;
   }
 
@@ -28,7 +28,7 @@ function createStarStorage(collection) {
   async function update(projectId, year, months) {
     if (!Array.isArray(months))
       throw new Error(
-        `Unable to update the snapshots, "months" should not an array`
+        'Unable to update the snapshots, "months" should not an array'
       );
     const query = { project: ObjectId(projectId), year };
     debug("Updating...", months[months.length - 1]);
@@ -43,10 +43,10 @@ function createStarStorage(collection) {
     );
     const { ok, nModified, upserted } = result;
     if (upserted) {
-      debug(`Snapshot document created`);
+      debug("Snapshot document created");
     }
     if (nModified === 1) {
-      debug(`Snapshot document updated`);
+      debug("Snapshot document updated");
     }
     return ok === 1;
   }
@@ -100,16 +100,33 @@ function createStarStorage(collection) {
 
     getAllSnapshots,
 
-    async getTrends(projectId) {
+    async computeAllTrends(projectId, { referenceDate = new Date() } = {}) {
       const snapshots = await getAllSnapshots(projectId);
-      const trends = computeTrends(snapshots);
+      const trends = computeTrends(snapshots, referenceDate);
+      const daily = computeDailyTrends(snapshots);
+      const currentDate = normalizeDate(referenceDate);
+      const monthly = computeMonthlyTrends(snapshots, { currentDate });
+      return {
+        trends,
+        timeSeries: { daily, monthly }
+      };
+    },
+
+    async getTrends(projectId, { referenceDate } = {}) {
+      const snapshots = await getAllSnapshots(projectId);
+      const trends = computeTrends(snapshots, referenceDate);
       return trends;
     },
 
-    async getDailyTrends(projectId) {
+    async getTimeSeries(projectId) {
+      const currentDate = normalizeDate(new Date());
       const snapshots = await getAllSnapshots(projectId);
-      const trends = computeDailyTrends(snapshots);
-      return trends;
+      const daily = computeDailyTrends(snapshots);
+      const monthly = computeMonthlyTrends(snapshots, { currentDate });
+      return {
+        daily,
+        monthly
+      };
     }
   };
 }
@@ -133,17 +150,19 @@ function normalizeDate(date) {
   return { year, month, day };
 }
 
-function computeTrends(snapshots) {
+function computeTrends(snapshots, referenceDate = new Date()) {
   snapshots.reverse();
-  const mostRecentSnapshot = snapshots[0];
+  const referenceSnapshot = snapshots.find(
+    snapshot => toDate(snapshot) < referenceDate
+  );
 
   const findSnapshotDaysAgo = days =>
-    snapshots.find(snapshot => diffDay(mostRecentSnapshot, snapshot) >= days);
+    snapshots.find(snapshot => diffDay(referenceSnapshot, snapshot) >= days);
 
   const getDelta = days => {
     const snapshot = findSnapshotDaysAgo(days);
     if (!snapshot) return undefined;
-    return mostRecentSnapshot.stars - snapshot.stars;
+    return referenceSnapshot.stars - snapshot.stars;
   };
 
   return {
@@ -171,9 +190,37 @@ function computeDailyTrends(snapshots, { count = 366 } = {}) {
   ).deltas;
 }
 
+function computeMonthlyTrends(snapshots, { count = 12, currentDate } = {}) {
+  if (snapshots.length === 0) return [];
+  const total = (count + 1) * 31;
+  snapshots = takeRight(orderBy(snapshots, toDate, "asc"), total);
+
+  const grouped = groupBy(snapshots, ({ year, month }) => `${year}/${month}`);
+
+  return Object.values(grouped)
+    .map(group => {
+      const firstSnapshot = group[0];
+      const lastSnapshot = group[group.length - 1];
+      const { year, month, stars, day } = firstSnapshot;
+      return {
+        year,
+        month,
+        firstDay: day,
+        lastDay: lastSnapshot.day,
+        delta: lastSnapshot.stars - stars
+      };
+    })
+    .filter(({ firstDay }) => firstDay === 1)
+    .filter(
+      ({ year, month }) =>
+        !(month === currentDate.month && year === currentDate.year)
+    );
+}
+
 module.exports = {
   createStarStorage,
   normalizeDate,
   computeTrends,
-  computeDailyTrends
+  computeDailyTrends,
+  computeMonthlyTrends
 };

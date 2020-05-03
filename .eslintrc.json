@@ -1,0 +1,17 @@
+{
+  "parser": "babel-eslint",
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "extends": ["eslint:recommended", "prettier"],
+  "plugins": ["import", "prettier"],
+  "rules": {
+    "import/no-unresolved": [2, { "commonjs": true }],
+    "import/named": 2,
+    "import/namespace": 2,
+    "import/default": 2,
+    "import/export": 2,
+    "no-console": 1
+  }
+}
