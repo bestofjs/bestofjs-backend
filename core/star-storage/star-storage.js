@@ -155,7 +155,6 @@ function computeTrends(snapshots, referenceDate = new Date()) {
   const referenceSnapshot = snapshots.find(
     (snapshot) => toDate(snapshot) < referenceDate
   );
-  console.info(snapshots, referenceSnapshot);
 
   const findSnapshotDaysAgo = (days) =>
     snapshots.find((snapshot) => diffDay(referenceSnapshot, snapshot) >= days);
