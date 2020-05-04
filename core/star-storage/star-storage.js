@@ -20,7 +20,7 @@ function createStarStorage(collection) {
     debug("Finding snapshot document for year", year);
     const doc = await collection.findOne({
       project: ObjectId(projectId),
-      year
+      year,
     });
     return doc;
   }
@@ -36,7 +36,7 @@ function createStarStorage(collection) {
       query,
       {
         $set: { months, updatedAt: new Date() },
-        $setOnInsert: { createdAt: new Date() }
+        $setOnInsert: { createdAt: new Date() },
       },
 
       { upsert: true }
@@ -59,7 +59,7 @@ function createStarStorage(collection) {
     const doc = await getDocumentByYear(projectId, year);
 
     const currentMonths = doc ? doc.months : [];
-    const updatedMonths = produce(currentMonths, months => {
+    const updatedMonths = produce(currentMonths, (months) => {
       const monthItem = months.find(findByMonth(month));
       if (!monthItem) {
         months.push({ month, snapshots: [{ day, stars }] });
@@ -80,8 +80,8 @@ function createStarStorage(collection) {
     return true;
   }
 
-  const findByMonth = month => item => item.month === month;
-  const findByDay = day => item => item.day === day;
+  const findByMonth = (month) => (item) => item.month === month;
+  const findByDay = (day) => (item) => item.day === day;
 
   async function getAllSnapshots(projectId) {
     const docs = await getDocuments(projectId);
@@ -108,7 +108,7 @@ function createStarStorage(collection) {
       const monthly = computeMonthlyTrends(snapshots, { currentDate });
       return {
         trends,
-        timeSeries: { daily, monthly }
+        timeSeries: { daily, monthly },
       };
     },
 
@@ -125,9 +125,9 @@ function createStarStorage(collection) {
       const monthly = computeMonthlyTrends(snapshots, { currentDate });
       return {
         daily,
-        monthly
+        monthly,
       };
-    }
+    },
   };
 }
 
@@ -153,13 +153,15 @@ function normalizeDate(date) {
 function computeTrends(snapshots, referenceDate = new Date()) {
   snapshots.reverse();
   const referenceSnapshot = snapshots.find(
-    snapshot => toDate(snapshot) < referenceDate
+    (snapshot) => toDate(snapshot) < referenceDate
   );
+  console.info(snapshots, referenceSnapshot);
 
-  const findSnapshotDaysAgo = days =>
-    snapshots.find(snapshot => diffDay(referenceSnapshot, snapshot) >= days);
+  const findSnapshotDaysAgo = (days) =>
+    snapshots.find((snapshot) => diffDay(referenceSnapshot, snapshot) >= days);
 
-  const getDelta = days => {
+  const getDelta = (days) => {
+    if (snapshots.length < 2) return undefined;
     const snapshot = findSnapshotDaysAgo(days);
     if (!snapshot) return undefined;
     return referenceSnapshot.stars - snapshot.stars;
@@ -170,7 +172,7 @@ function computeTrends(snapshots, referenceDate = new Date()) {
     weekly: getDelta(7),
     monthly: getDelta(30),
     quarterly: getDelta(90),
-    yearly: getDelta(365)
+    yearly: getDelta(365),
   };
 }
 
@@ -183,7 +185,7 @@ function computeDailyTrends(snapshots, { count = 366 } = {}) {
     (acc, snapshot) => {
       return {
         deltas: acc.deltas.concat(snapshot.stars - acc.previous),
-        previous: snapshot.stars
+        previous: snapshot.stars,
       };
     },
     { deltas: [], previous: value0 }
@@ -198,7 +200,7 @@ function computeMonthlyTrends(snapshots, { count = 12, currentDate } = {}) {
   const grouped = groupBy(snapshots, ({ year, month }) => `${year}/${month}`);
 
   return Object.values(grouped)
-    .map(group => {
+    .map((group) => {
       const firstSnapshot = group[0];
       const lastSnapshot = group[group.length - 1];
       const { year, month, stars, day } = firstSnapshot;
@@ -207,7 +209,7 @@ function computeMonthlyTrends(snapshots, { count = 12, currentDate } = {}) {
         month,
         firstDay: day,
         lastDay: lastSnapshot.day,
-        delta: lastSnapshot.stars - stars
+        delta: lastSnapshot.stars - stars,
       };
     })
     .filter(({ firstDay }) => firstDay === 1)
@@ -222,5 +224,5 @@ module.exports = {
   normalizeDate,
   computeTrends,
   computeDailyTrends,
-  computeMonthlyTrends
+  computeMonthlyTrends,
 };
