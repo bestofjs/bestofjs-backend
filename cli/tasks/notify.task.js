@@ -25,7 +25,7 @@ function readFile() {
 function notify({ projects, channel }) {
   const url = process.env.SLACK_DAILY_WEBHOOK;
   if (!url) throw new Error('No "SLACK_WEBHOOK" env. variable defined');
-  const score = (project) =>
+  const score = project =>
     project.trends.daily > 0 ? project.trends.daily : 0;
   const topProjects = projects
     .sort((a, b) => (score(a) > score(b) ? -1 : 1))
@@ -54,7 +54,7 @@ function projectToAttachment(project, pretext) {
     title: project.name,
     title_link: url,
     text: project.description,
-    thumb_url,
+    thumb_url
   };
   return attachment;
 }
@@ -64,7 +64,7 @@ async function sendSlackMessage(text, { url, channel, attachments }) {
   const body = {
     text,
     mrkdwn: true,
-    attachments,
+    attachments
   };
   if (channel) {
     body.channel = `#${channel}`; // Override the default webhook channel, if specified (for tests)
@@ -74,7 +74,7 @@ async function sendSlackMessage(text, { url, channel, attachments }) {
   try {
     const { body: bodyResponse } = await got(url, {
       body: JSON.stringify(body),
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json" }
     });
 
     debug("Response", bodyResponse);

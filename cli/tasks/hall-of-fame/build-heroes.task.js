@@ -2,11 +2,11 @@ const slugify = require("slugify");
 
 const { createTask } = require("../../task-runner");
 
-module.exports = createTask("update-github-heroes", async (context) => {
+module.exports = createTask("update-github-heroes", async context => {
   const { processHeroes, saveJSON } = context;
 
   const { data: heroes } = await processHeroes({
-    handler: heroToJSON,
+    handler: heroToJSON
   });
 
   await saveJSON({ date: new Date(), heroes }, "hof.json");
@@ -19,24 +19,24 @@ function heroToJSON(hero) {
     followers: hero.github.followers,
     blog: getHeroHomepage(hero),
     name: hero.github.name,
-    projects: hero.projects.map((project) =>
+    projects: hero.projects.map(project =>
       slugify(project.name, { lower: true, remove: /[.']/g })
     ),
     bio: hero.short_bio,
     npm: hero.npm.username,
-    modules: hero.npm.count,
+    modules: hero.npm.count
   };
   return {
     meta: { processed: true },
-    data,
+    data
   };
 }
 
-const getHeroHomepage = (hero) => {
+const getHeroHomepage = hero => {
   const {
     github: { blog },
     url,
-    override_url,
+    override_url
   } = hero;
   if (override_url) return url;
   // npm package page is not a valid homepage!
@@ -44,9 +44,8 @@ const getHeroHomepage = (hero) => {
     "npmjs.com/",
     "npm.im/",
     "npmjs.org/",
-    "github.com/",
+    "github.com/"
   ];
-  const isValid = (url) =>
-    !invalidPatterns.some((re) => new RegExp(re).test(url));
+  const isValid = url => !invalidPatterns.some(re => new RegExp(re).test(url));
   return blog && isValid(blog) ? blog : url;
 };

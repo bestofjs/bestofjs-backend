@@ -1,7 +1,7 @@
 const {
   createTaskRunner,
   createProjectTaskRunner
-} = require("../../cli/task-runner");
+} = require("../../task-runner");
 
 const wait = delayMs => new Promise(resolve => setTimeout(resolve, delayMs));
 

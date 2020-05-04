@@ -2,14 +2,14 @@ const { isEqual } = require("lodash");
 
 const { createTask } = require("../../task-runner");
 
-module.exports = createTask("update-github-heroes", async (context) => {
+module.exports = createTask("update-github-heroes", async context => {
   const { processHeroes, getGitHubClient } = context;
 
   const client = getGitHubClient();
 
   await processHeroes({
     handler: updateHero({ client }),
-    query: {},
+    query: {}
   });
 });
 
@@ -36,6 +36,6 @@ const updateHero = ({ client }) => async (hero, context) => {
 
   return {
     data: "OK",
-    meta: { updated: needsUpdate, popular: hero.github.followers > 1000 },
+    meta: { updated: needsUpdate, popular: hero.github.followers > 1000 }
   };
 };

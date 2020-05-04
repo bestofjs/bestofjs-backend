@@ -1,12 +1,12 @@
 const { createTask } = require("../../task-runner");
 
-module.exports = createTask("update-github-data", async (context) => {
+module.exports = createTask("update-github-data", async context => {
   const { getGitHubClient, starStorage, processProjects } = context;
   const client = getGitHubClient();
 
   await processProjects({
     handler: updateGithubProject({ client, starStorage }),
-    query: { deprecated: false },
+    query: { deprecated: false }
   });
 });
 
@@ -29,7 +29,7 @@ const updateGithubProject = ({ client, starStorage }) => async (
   project.github = {
     ...project.github,
     ...githubData,
-    updatedAt: new Date(),
+    updatedAt: new Date()
   };
 
   // for an unknown reason, we sometimes got an incorrect value of 0 contributors, don't overwrite data when it happens
@@ -41,7 +41,7 @@ const updateGithubProject = ({ client, starStorage }) => async (
     logger.debug("Readonly mode", githubData);
   } else {
     logger.debug("STEP 4: update project record from Github data", {
-      githubData,
+      githubData
     });
     try {
       await project.save();

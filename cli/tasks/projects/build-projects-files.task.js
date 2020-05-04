@@ -2,12 +2,12 @@ const { omit, pick } = require("lodash");
 
 const { createTask } = require("../../task-runner");
 
-module.exports = createTask("build-projects-json-files", async (context) => {
+module.exports = createTask("build-projects-json-files", async context => {
   const { processProjects, starStorage, saveJSON } = context;
 
   const { data: projects } = await processProjects({
     handler: readProject({ starStorage }),
-    query: { deprecated: false, disabled: false }, // don't include "disabled" projects in built files
+    query: { deprecated: false, disabled: false } // don't include "disabled" projects in built files
   });
 
   await buildFullList(projects, context);
@@ -22,13 +22,13 @@ module.exports = createTask("build-projects-json-files", async (context) => {
     const allTags = await fetchTags(context);
 
     const projects = allProjects
-      .filter((item) => !!item) // remove null items that might be created if error occurred
-      .filter((project) => project.trends.daily !== undefined)
-      .filter((project) => project.stars >= 50) // show only projects with more than 50 stars
-      .filter((project) =>
+      .filter(item => !!item) // remove null items that might be created if error occurred
+      .filter(project => project.trends.daily !== undefined)
+      .filter(project => project.stars >= 50) // show only projects with more than 50 stars
+      .filter(project =>
         project.trends.yearly !== undefined ? project.trends.yearly > 10 : true
       )
-      .filter((project) => !isInactiveProject(project))
+      .filter(project => !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
 
     logger.debug(`${projects.length} projects to include in the JSON file`);
@@ -43,7 +43,7 @@ module.exports = createTask("build-projects-json-files", async (context) => {
   function compactProjectData(project) {
     const compactData = {
       ...omit(project, ["version", "created_at"]),
-      description: truncate(project.description, 75),
+      description: truncate(project.description, 75)
     };
     return compactData;
   }
@@ -55,15 +55,15 @@ module.exports = createTask("build-projects-json-files", async (context) => {
 
   async function buildNpmList(allProjects) {
     const projects = allProjects
-      .filter((project) => !!project.npm)
-      .filter((project) => project.trends.daily !== undefined);
+      .filter(project => !!project.npm)
+      .filter(project => project.trends.daily !== undefined);
     const count = projects.length;
     const date = new Date();
     await saveJSON({ date, count, projects }, "npm-projects.json");
   }
 
   async function buildStateOfJavaScriptList(allProjects) {
-    const projects = allProjects.map((project) =>
+    const projects = allProjects.map(project =>
       pick(project, [
         "name",
         "stars",
@@ -71,7 +71,7 @@ module.exports = createTask("build-projects-json-files", async (context) => {
         "full_name",
         "description",
         "url",
-        "aliases",
+        "aliases"
       ])
     );
     const count = projects.length;
@@ -80,7 +80,7 @@ module.exports = createTask("build-projects-json-files", async (context) => {
   }
 });
 
-const readProject = ({ starStorage }) => async (project) => {
+const readProject = ({ starStorage }) => async project => {
   const trends = await starStorage.getTrends(project._id);
 
   const data = {
@@ -89,11 +89,11 @@ const readProject = ({ starStorage }) => async (project) => {
     description: project.getDescription(),
     stars: project.github.stargazers_count,
     trends: omit(trends, "quarterly"),
-    tags: project.tags.map((tag) => tag.code),
+    tags: project.tags.map(tag => tag.code),
     contributor_count: project.github.contributor_count,
     pushed_at: project.github.last_commit,
     owner_id: project.github.owner_id,
-    created_at: project.github.created_at,
+    created_at: project.github.created_at
   };
 
   const url = project.getURL();
@@ -128,8 +128,8 @@ const readProject = ({ starStorage }) => async (project) => {
   return {
     data,
     meta: {
-      success: true,
-    },
+      success: true
+    }
   };
 };
 
@@ -138,22 +138,22 @@ function fetchTags({ models: { Tag } }) {
     code: 1,
     name: 1,
     description: 1,
-    _id: 0, // required to omit _id field
+    _id: 0 // required to omit _id field
   };
   return Tag.find({}, fields).sort({ name: 1 });
 }
 
-const findProjectByTagId = (projects) => (tagId) =>
+const findProjectByTagId = projects => tagId =>
   projects.find(({ tags }) => tags.includes(tagId));
 
-const getYearsSinceLastCommit = (project) => {
+const getYearsSinceLastCommit = project => {
   const lastCommit = new Date(project.pushed_at);
   return (today - lastCommit) / 1000 / 3600 / 24 / 365;
 };
 
 const today = new Date();
 
-const isInactiveProject = (project) => {
+const isInactiveProject = project => {
   const delta = project.trends.yearly;
   if (delta === undefined) return false;
   return Math.floor(getYearsSinceLastCommit(project)) > 0 && delta < 100;
