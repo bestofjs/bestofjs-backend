@@ -103,7 +103,10 @@ function createTaskRunner(options = {}) {
     if (!mongo_uri)
       throw new Error(`"${mongo_key}" env. variable is not defined.`);
     logger.debug(`Connecting to the database "${mongo_key}"`);
-    await mongoose.connect(mongo_uri, { useNewUrlParser: true });
+    await mongoose.connect(mongo_uri, {
+      useNewUrlParser: true,
+      useCreateIndex: true
+    });
     logger.info(`Connected to the database "${mongo_key}"`);
   };
 

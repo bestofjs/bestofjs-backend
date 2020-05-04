@@ -18,9 +18,10 @@ const schema = new mongoose.Schema(fields, {
   collection: "snapshots"
 });
 
-schema.index({ project: 1, year: 1 });
-schema.index({ fullName: 1 });
-
 const model = mongoose.model("Snapshot", schema);
+
+const collection = model.collection;
+collection.createIndex({ project: 1, year: 1 });
+collection.createIndex({ fullName: 1 });
 
 module.exports = model;
