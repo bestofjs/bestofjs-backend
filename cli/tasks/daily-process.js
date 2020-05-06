@@ -6,11 +6,11 @@ const updateHeroes = require("./hall-of-fame/update-github-heroes.task");
 const buildHeroes = require("./hall-of-fame/build-heroes.task");
 const notify = require("./notify.task");
 
-const nowURL = process.env.VERCEL_URL;
+const isGitHubDeployment = process.env.VERCEL_GITHUB_DEPLOYMENT;
 
-console.log({ nowURL });
+console.log({ isGitHubDeployment });
 
-if (nowURL) {
+if (isGitHubDeployment) {
   console.info(`No build process to trigger after a branch is pushed`);
   process.exit(0);
 }
