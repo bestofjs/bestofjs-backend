@@ -12,10 +12,10 @@ const isDeploymentLocked = process.env.LOCK === "1";
 if (isDeploymentLocked) {
   console.info(
     `Build process is locked!
-     Unlock by updating "LOCK_DEPLOY" from the settings page
+     Unlock by updating "LOCK" env. variable from the settings page
     `
   );
-  process.exit(0);
+  process.exit(1);
 } else {
   console.info(`Deployments are unlocked, starting the building process...`);
 }

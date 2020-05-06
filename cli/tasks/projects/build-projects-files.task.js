@@ -1,4 +1,4 @@
-const { omit, pick } = require("lodash");
+const { omit, orderBy, pick } = require("lodash");
 
 const { createTask } = require("../../task-runner");
 
@@ -12,9 +12,9 @@ module.exports = createTask("build-projects-json-files", async context => {
 
   await buildFullList(projects, context);
 
-  await buildNpmList(projects, context);
+  // await buildNpmList(projects, context);
 
-  await buildStateOfJavaScriptList(projects, context);
+  // await buildStateOfJavaScriptList(projects, context);
 
   async function buildFullList(allProjects, context) {
     const { logger } = context;
@@ -31,7 +31,9 @@ module.exports = createTask("build-projects-json-files", async context => {
       .filter(project => !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
 
-    logger.debug(`${projects.length} projects to include in the JSON file`);
+    logger.info(`${projects.length} projects to include in the JSON file`, {
+      hot: getDailyHotProjects(projects)
+    });
     const date = new Date();
 
     const tags = allTags.filter(
@@ -158,3 +160,9 @@ const isInactiveProject = project => {
   if (delta === undefined) return false;
   return Math.floor(getYearsSinceLastCommit(project)) > 0 && delta < 100;
 };
+
+function getDailyHotProjects(projects) {
+  return orderBy(projects, "trends.daily", "desc")
+    .slice(0, 5)
+    .map(project => `${project.name} (+${project.trends.daily})`);
+}

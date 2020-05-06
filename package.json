@@ -15,6 +15,10 @@
   "engines": {
     "node": ">=10.14.2"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bestofjs-backend"
+  },
   "dependencies": {
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
