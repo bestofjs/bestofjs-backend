@@ -21,4 +21,10 @@ if (isDeploymentLocked) {
 }
 
 // Compose the tasks that need to be run every day
-runTasks([updateProjects, buildProjects, updateHeroes, buildHeroes, notify]);
+runTasks([
+  // updateProjects,
+  buildProjects
+  // updateHeroes,
+  // buildHeroes,
+  //  notify
+]);

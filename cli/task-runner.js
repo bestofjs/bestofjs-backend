@@ -4,6 +4,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const prettyBytes = require("pretty-bytes");
 const prettyMs = require("pretty-ms");
+const { last } = require("lodash");
 require("dotenv").config();
 
 const models = require("../core/models");
@@ -100,14 +101,14 @@ function createTaskRunner(options = {}) {
   const start = async () => {
     const mongo_key = "MONGO_URI_" + dbEnv.toUpperCase();
     const mongo_uri = process.env[mongo_key];
-    if (!mongo_uri)
-      throw new Error(`"${mongo_key}" env. variable is not defined.`);
-    logger.debug(`Connecting to the database "${mongo_key}"`);
+    if (!mongo_uri) throw new Error(`"${mongo_key}" env. variable is empty!`);
+    logger.verbose(`Connecting to the database "${mongo_key}"...`);
     await mongoose.connect(mongo_uri, {
       useNewUrlParser: true,
       useCreateIndex: true
     });
-    logger.info(`Connected to the database "${mongo_key}"`);
+    const dbName = last(mongo_uri.split("/"));
+    logger.info(`Connected to the database "${mongo_key}" ${dbName}`);
   };
 
   const finish = () => {
