@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "name": "bestofjs-static-api",
+  "alias": "bestofjs-static-api",
+  "scope": "bestofjs",
+  "builds": [{ "src": "/build/**", "use": "@now/static" }],
+  "routes": [
+    { "src": "/", "dest": "/build/" },
+    {
+      "src": "/(.+json)",
+      "dest": "/build/$1",
+      "headers": {
+        "key": "Access-Control-Allow-Origin",
+        "value": "*"
+      }
+    }
+  ],
+  "env": {
+    "DB_ENV": "production",
+    "MONGO_URI_PRODUCTION": "@mongo_uri_production"
+  }
+}

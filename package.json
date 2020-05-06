@@ -6,8 +6,6 @@
     "build": "node cli/tasks/daily-process",
     "daily": "node cli/tasks/daily-process && npm run deploy:prod",
     "daily-npm-update": "node cli/tasks/daily-package-data-process",
-    "deploy:prod": "firebase deploy --project prod",
-    "deploy:dev": "firebase deploy --project dev",
     "lint": "eslint **/*.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "serve ./build"
@@ -21,7 +19,6 @@
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
     "emoji-regex": "^8.0.0",
-    "firebase-tools": "^7.1.0",
     "fs-extra": "^8.0.1",
     "gh-got": "^8.1.0",
     "got": "^9.5.0",

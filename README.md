@@ -4,16 +4,16 @@ This repository contains [Best of JavaScript](https://bestofjs.org/) back-end ta
 
 Tasks can be launched from the command line and scheduled on CI servers.
 
-A "task" is just a Node.js JavaScript file that can be launched using `node` executable.
+A "task" is just a Node.js JavaScript file that can be launched using the task runner `run.js` at the root level:
 
 ```
-node cli/tasks/<task-parent-folder>
+node ./run.js <path-to-task.task.js> <options>
 ```
 
-Examples:
+Example:
 
 ```shell
-node cli/tasks/projects/update --loglevel debug --limit 1
+node ./run.js ./cli/tasks/projects/update-github-data.task.js --loglevel debug --limit 1
 ```
 
 Available options:

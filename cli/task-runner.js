@@ -63,7 +63,7 @@ function createTask(name, handler) {
 }
 
 function createTaskRunner(options = {}) {
-  let { dbEnv = "v2", logLevel, readonly, limit } = options;
+  let { dbEnv = "production", logLevel, readonly, limit } = options;
 
   const getLogger = () => {
     const env = process.env.NODE_ENV;
