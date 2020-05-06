@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "dev": "bestofjs-api-dev",
+    "prod": "bestofjs-api-v3",
+    "default": "bestofjs-api-dev"
+  }
+}

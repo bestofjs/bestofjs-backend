@@ -5,6 +5,9 @@
   "scripts": {
     "build": "node cli/tasks/daily-process",
     "daily": "node cli/tasks/daily-process && npm run deploy:prod",
+    "deploy:prod": "firebase deploy --project prod",
+    "download": "curl https://bestofjs-static-api.now.sh/projects.json > build/projects.json",
+    "download:hof": "curl https://bestofjs-static-api.now.sh/hof.json > build/hof.json",
     "daily-npm-update": "node cli/tasks/daily-package-data-process",
     "lint": "eslint **/*.js",
     "test": "echo \"Error: no test specified\" && exit 1",
