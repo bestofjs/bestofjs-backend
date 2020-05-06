@@ -7,8 +7,9 @@ const buildHeroes = require("./hall-of-fame/build-heroes.task");
 const notify = require("./notify.task");
 
 const isGitHubDeployment = process.env.VERCEL_GITHUB_DEPLOYMENT;
+const commitSHA = process.env.VERCEL_GITHUB_COMMIT_SHA;
 
-console.log({ isGitHubDeployment });
+console.log({ isGitHubDeployment, commitSHA });
 
 if (isGitHubDeployment) {
   console.info(`No build process to trigger after a branch is pushed`);
