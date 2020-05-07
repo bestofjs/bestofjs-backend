@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Best of JavaScript backend applications",
   "scripts": {
-    "build": "node cli/tasks/daily-process",
+    "build": "node cli/tasks/daily-process --loglevel debug --limit 1 --id 5eb255dc4e4df291c9ceac64",
     "daily": "node cli/tasks/daily-process && npm run deploy:prod",
     "daily-npm-update": "node cli/tasks/daily-package-data-process",
     "lint": "eslint **/*.js",

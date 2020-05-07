@@ -5,6 +5,8 @@ const { createTask } = require("../../task-runner");
 module.exports = createTask("build-projects-json-files", async context => {
   const { processProjects, starStorage, saveJSON } = context;
 
+  await starStorage.debug("5eb255dc4e4df291c9ceac64");
+
   const { data: projects } = await processProjects({
     handler: readProject({ starStorage }),
     query: { deprecated: false, disabled: false } // don't include "disabled" projects in built files

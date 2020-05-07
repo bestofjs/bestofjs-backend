@@ -96,6 +96,13 @@ function createStarStorage(collection) {
   }
 
   return {
+    collection, // for debugging
+    async debug(projectId) {
+      const doc = await collection.findOne({
+        project: ObjectId(projectId)
+      });
+      console.log(doc.months[0].snapshots);
+    },
     addSnapshot,
 
     getAllSnapshots,
