@@ -17,8 +17,16 @@ if (isDeploymentLocked) {
   );
   process.exit(1);
 } else {
-  console.info(`Deployments are unlocked, starting the building process...`);
+  console.info(
+    `[TEST BRANCH] Deployments are unlocked, starting the building process...`
+  );
 }
 
 // Compose the tasks that need to be run every day
-runTasks([updateProjects, buildProjects, updateHeroes, buildHeroes, notify]);
+runTasks([
+  // updateProjects,
+  buildProjects
+  // updateHeroes,
+  // buildHeroes,
+  //  notify
+]);
