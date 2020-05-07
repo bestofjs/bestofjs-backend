@@ -107,7 +107,7 @@ function createStarStorage(collection) {
 
     getAllSnapshots,
 
-    async computeAllTrends(projectId, { referenceDate = new Date() } = {}) {
+    async computeAllTrends(projectId, { referenceDate } = {}) {
       const snapshots = await getAllSnapshots(projectId);
       const trends = computeTrends(snapshots, referenceDate);
       const daily = computeDailyTrends(snapshots);
@@ -157,11 +157,11 @@ function normalizeDate(date) {
   return { year, month, day };
 }
 
-function computeTrends(snapshots, referenceDate = new Date()) {
+function computeTrends(snapshots, referenceDate) {
   snapshots.reverse();
-  const referenceSnapshot = snapshots.find(
-    snapshot => toDate(snapshot) < referenceDate
-  );
+  const referenceSnapshot = referenceDate
+    ? snapshots.find(snapshot => toDate(snapshot) < referenceDate)
+    : snapshots[0];
 
   const findSnapshotDaysAgo = days =>
     snapshots.find(snapshot => diffDay(referenceSnapshot, snapshot) >= days);
