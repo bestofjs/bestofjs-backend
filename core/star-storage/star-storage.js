@@ -100,7 +100,7 @@ function createStarStorage(collection) {
 
     getAllSnapshots,
 
-    async computeAllTrends(projectId, { referenceDate = new Date() } = {}) {
+    async computeAllTrends(projectId, { referenceDate } = {}) {
       const snapshots = await getAllSnapshots(projectId);
       const trends = computeTrends(snapshots, referenceDate);
       const daily = computeDailyTrends(snapshots);
@@ -150,11 +150,11 @@ function normalizeDate(date) {
   return { year, month, day };
 }
 
-function computeTrends(snapshots, referenceDate = new Date()) {
-  snapshots.reverse();
-  const referenceSnapshot = snapshots.find(
-    snapshot => toDate(snapshot) < referenceDate
-  );
+function computeTrends(snapshots, referenceDate) {
+  snapshots.reverse(); // most recent snapshot first
+  const referenceSnapshot = referenceDate
+    ? snapshots.find(snapshot => toDate(snapshot) < referenceDate) // for the Rising Stars trends are computed based on a given reference date
+    : snapshots[0]; // the most recent snapshot is the reference of the daily build process
 
   const findSnapshotDaysAgo = days =>
     snapshots.find(snapshot => diffDay(referenceSnapshot, snapshot) >= days);
