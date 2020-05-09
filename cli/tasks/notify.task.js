@@ -7,13 +7,13 @@ const { createTask } = require("../task-runner");
 
 module.exports = createTask("notify-hot-projects", async (context, options) => {
   const { logger } = context;
-  const { channel } = options;
+  const { channel, dryRun } = options;
 
   logger.debug("Send the daily notification...", options);
   const data = await readFile();
   const { projects } = data;
   logger.debug(`${projects.length} projects to scan`);
-  await notify({ projects, channel });
+  await notify({ projects, channel, dryRun });
   logger.info("Notification sent to Slack");
 });
 
@@ -22,7 +22,7 @@ function readFile() {
   return fs.readJson(filePath);
 }
 
-function notify({ projects, channel }) {
+function notify({ projects, channel, dryRun }) {
   const url = process.env.SLACK_DAILY_WEBHOOK;
   if (!url) throw new Error('No "SLACK_WEBHOOK" env. variable defined');
   const score = project =>
@@ -30,7 +30,7 @@ function notify({ projects, channel }) {
   const topProjects = projects
     .sort((a, b) => (score(a) > score(b) ? -1 : 1))
     .slice(0, 5);
-  const options = { url, projects: topProjects, channel };
+  const options = { url, projects: topProjects, channel, dryRun };
   // In local, override the default Slack channel to avoid sending messages to the real channel
   if (!channel) channel = process.env.SLACK_CHANNEL_TEST;
   if (channel) options.channel = channel;
@@ -84,12 +84,15 @@ async function sendSlackMessage(text, { url, channel, attachments }) {
   }
 }
 
-function notifySuccess({ projects, url, channel }) {
+function notifySuccess({ projects, url, channel, dryRun }) {
   const attachments = projects.map((project, i) => {
     const stars = project.trends.daily;
     const text = `Number ${i + 1} +${stars} stars since today:`;
     return projectToAttachment(project, text);
   });
   const text = "TOP 5 Hottest Projects Today";
-  return sendSlackMessage(text, { url, channel, attachments });
+
+  return dryRun
+    ? console.info("[DRY RUN]", text, attachments) //eslint-disable-line no-console
+    : sendSlackMessage(text, { url, channel, attachments });
 }

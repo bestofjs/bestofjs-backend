@@ -6,6 +6,7 @@ function normalizeOptionKey(key) {
     loglevel: "logLevel",
     fullname: "fullName",
     db: "dbEnv",
+    dryrun: "dryRun"
   };
   const foundKey = optionKeys[key];
   return foundKey || key;
