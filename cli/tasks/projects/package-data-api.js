@@ -72,7 +72,7 @@ async function getBundleData(packageName) {
 }
 
 async function getPackageSizeData(packageName, version) {
-  const url = `https://packagephobia.now.sh/api.json?p=${encodeURIComponent(
+  const url = `https://packagephobia.com/api.json?p=${encodeURIComponent(
     packageName
   )}@${version}`;
   const headers = {
