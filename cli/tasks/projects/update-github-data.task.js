@@ -16,11 +16,12 @@ const updateGithubProject = ({ client, starStorage }) => async (
 ) => {
   logger.debug("STEP 1: get project data from Github API");
   const githubData = await client.fetchRepoInfo(project.github.full_name);
-  const { full_name, stargazers_count: stars } = githubData;
+  const { stargazers_count: stars } = githubData;
 
-  logger.debug("STEP 2: Get `contributor_count` by scrapping Github web page");
-  const contributor_count = await client.fetchContributorCount(full_name);
-  logger.debug("Data from scraping", { contributor_count });
+  // Disable contributor_count request
+  //logger.debug("STEP 2: Get `contributor_count` by scrapping Github web page");
+  const contributor_count = false; // await client.fetchContributorCount(full_name);
+  //logger.debug("Data from scraping", { contributor_count });
 
   logger.debug("STEP 3: save a snapshot record for today, if needed.");
   const snapshotAdded = await starStorage.addSnapshot(project._id, stars);
