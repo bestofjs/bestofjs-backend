@@ -26,7 +26,7 @@ module.exports = createTask("build-projects-json-files", async context => {
       .filter(project => project.trends.daily !== undefined)
       .filter(project => project.stars >= 50) // show only projects with more than 50 stars
       .filter(project =>
-        project.trends.yearly !== undefined ? project.trends.yearly > 10 : true
+        project.trends.yearly !== undefined ? project.trends.yearly > 50 : true
       )
       .filter(project => !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
@@ -44,7 +44,7 @@ module.exports = createTask("build-projects-json-files", async context => {
 
   function compactProjectData(project) {
     const compactData = {
-      ...omit(project, ["version", "created_at"]),
+      ...omit(project, ["version"]),
       description: truncate(project.description, 75)
     };
     return compactData;
@@ -93,9 +93,9 @@ const readProject = ({ starStorage }) => async project => {
     trends: omit(trends, "quarterly"),
     tags: project.tags.map(tag => tag.code),
     contributor_count: project.github.contributor_count,
-    pushed_at: project.github.last_commit,
+    pushed_at: formatDate(project.github.last_commit),
     owner_id: project.github.owner_id,
-    created_at: project.github.created_at
+    created_at: formatDate(project.github.created_at)
   };
 
   const url = project.getURL();
@@ -139,7 +139,6 @@ function fetchTags({ models: { Tag } }) {
   const fields = {
     code: 1,
     name: 1,
-    description: 1,
     _id: 0 // required to omit _id field
   };
   return Tag.find({}, fields).sort({ name: 1 });
@@ -165,4 +164,8 @@ function getDailyHotProjects(projects) {
   return orderBy(projects, "trends.daily", "desc")
     .slice(0, 5)
     .map(project => `${project.name} (+${project.trends.daily})`);
+}
+
+function formatDate(date) {
+  return date.toISOString().slice(0, 10);
 }
