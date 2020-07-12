@@ -26,7 +26,9 @@ module.exports = createTask("build-projects-json-files", async context => {
       .filter(project => project.trends.daily !== undefined)
       .filter(project => project.stars >= 50) // show only projects with more than 50 stars
       .filter(project =>
-        project.trends.yearly !== undefined ? project.trends.yearly > 50 : true
+        project.trends.yearly !== undefined
+          ? project.trends.yearly > 50 || !!project.icon // remove cold projects, except if they are featured
+          : true
       )
       .filter(project => !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
