@@ -69,12 +69,12 @@ function createClient(accessToken) {
 
     async fetchContributorCount(fullName) {
       debug(`Fetching the number of contributors by scraping`, fullName);
-      const url = `https://github.com/${fullName}/contributors_size`;
+      const url = `https://github.com/${fullName}`;
       const {
         data: { contributor_count }
       } = await scrapeIt(url, {
         contributor_count: {
-          selector: ".num.text-emphasized",
+          selector: `a[href="/${fullName}/graphs/contributors"] .Counter`,
           convert: toInteger
         }
       });
