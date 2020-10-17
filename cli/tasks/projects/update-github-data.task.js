@@ -6,7 +6,8 @@ module.exports = createTask("update-github-data", async context => {
 
   await processProjects({
     handler: updateGithubProject({ client, starStorage }),
-    query: { deprecated: false }
+    query: { deprecated: false },
+    concurrency: 2 // try to solve the rate limit problem decreasing the concurrency
   });
 });
 

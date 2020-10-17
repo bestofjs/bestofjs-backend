@@ -30,8 +30,8 @@ async function processProjects({
 
   const count = projects.length;
 
-  const mapper = async project => {
-    logger.verbose(`Processing ${project.toString()}`);
+  const mapper = async (project, index) => {
+    logger.verbose(`Processing #${index + 1} ${project.toString()}`);
     try {
       const result = await handler(project, context);
       logger.debug(`Processed ${project.toString()}`, result); // only log the result at the "debug" level
@@ -41,9 +41,11 @@ async function processProjects({
         );
       return result;
     } catch (error) {
-      logger.error(`Error while processing ${project.toString()}`, {
-        error: error.stack
-      });
+      logger.error(
+        `Error while processing #${index + 1} ${project.toString()}: ${
+          error.message
+        }`
+      );
       return { meta: { error: true }, data: undefined };
     }
   };
@@ -111,9 +113,10 @@ async function fetchProjects({
     //   npm: 1,
     //   icon: 1
     // })
-    .populate("tags")
+    .populate({ path: "tags", select: { name: 1, code: 1, _id: 0 } })
     .sort(sort)
     .limit(limit);
+  // .skip(1700);
   // .lean(); we use `toString()` Mongoose models
 }
 

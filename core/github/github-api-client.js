@@ -19,7 +19,12 @@ function createClient(accessToken) {
     debug("Fetch repo info from GitHub GraphQL", owner, name);
     return graphQLClient
       .request(queryRepoInfo, { owner, name })
-      .then(extractRepoInfo);
+      .then(extractRepoInfo)
+      .catch(error => {
+        const message = error.response && error.response.message;
+        if (message) throw new Error(`GraphQL API error "${message}"`);
+        throw error;
+      });
   };
 
   const fetchRepoInfoFallback = async fullName => {
