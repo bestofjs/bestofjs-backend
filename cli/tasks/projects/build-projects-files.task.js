@@ -1,4 +1,5 @@
 const { omit, orderBy, pick } = require("lodash");
+const { default: slugify } = require("slugify");
 
 const { createTask } = require("../../task-runner");
 
@@ -10,13 +11,15 @@ module.exports = createTask("build-projects-json-files", async context => {
     query: { deprecated: false, disabled: false } // don't include "disabled" projects in built files
   });
 
+  await buildMainList(projects, context);
+
   await buildFullList(projects, context);
 
   // await buildNpmList(projects, context);
 
-  // await buildStateOfJavaScriptList(projects, context);
+  await buildStateOfJS(projects, context);
 
-  async function buildFullList(allProjects, context) {
+  async function buildMainList(allProjects, context) {
     const { logger } = context;
 
     const allTags = await fetchTags(context);
@@ -46,7 +49,7 @@ module.exports = createTask("build-projects-json-files", async context => {
 
   function compactProjectData(project) {
     const compactData = {
-      ...omit(project, ["version"]),
+      ...omit(project, ["added_at"]),
       description: truncate(project.description, 75)
     };
     return compactData;
@@ -66,21 +69,27 @@ module.exports = createTask("build-projects-json-files", async context => {
     await saveJSON({ date, count, projects }, "npm-projects.json");
   }
 
-  async function buildStateOfJavaScriptList(allProjects) {
-    const projects = allProjects.map(project =>
-      pick(project, [
-        "name",
-        "stars",
-        "npm",
-        "full_name",
-        "description",
-        "url",
-        "aliases"
-      ])
-    );
+  async function buildStateOfJS(allProjects) {
+    const projects = allProjects.map(project => ({
+      id: slugify(project.name, { lower: true, remove: /[.']/g }),
+      name: project.name,
+      npm: project.npm,
+      github: project.full_name,
+      description: truncate(project.description, 100),
+      homepage: project.url
+    }));
+    const date = new Date();
+    const count = projects.length;
+    await saveJSON({ date, count, projects }, "stateofjs-projects.json");
+  }
+
+  async function buildFullList(allProjects) {
+    const projects = allProjects
+      .filter(item => !!item) // remove null items that might be created if error occurred
+      .filter(project => project.trends.daily !== undefined);
     const count = projects.length;
     const date = new Date();
-    await saveJSON({ date, count, projects }, "stateofjs-projects.json");
+    await saveJSON({ date, count, projects }, "project-full-list.json");
   }
 });
 
@@ -97,7 +106,8 @@ const readProject = ({ starStorage }) => async project => {
     contributor_count: project.github.contributor_count,
     pushed_at: formatDate(project.github.last_commit),
     owner_id: project.github.owner_id,
-    created_at: formatDate(project.github.created_at)
+    created_at: formatDate(project.github.created_at),
+    added_at: project.createdAt
   };
 
   const url = project.getURL();
@@ -114,7 +124,6 @@ const readProject = ({ starStorage }) => async project => {
   // Add npm data if available
   if (project.npm && project.npm.name) {
     data.npm = project.npm.name;
-    data.version = project.npm.version;
     if (project.downloads) {
       data.downloads = project.downloads.monthly;
     }
