@@ -7,7 +7,8 @@ const updateHeroes = require("./hall-of-fame/update-github-heroes.task");
 const buildHeroes = require("./hall-of-fame/build-heroes.task");
 const notify = require("./notify.task");
 
-const isDeploymentLocked = process.env.LOCK === "1";
+const isDeploymentLocked = process.env.LOCK === "1"; // avoid triggering daily process when pushing updates
+const buildOnly = process.env.BUILD_ONLY === "1"; // used to trigger a re-build without updating the database
 
 if (isDeploymentLocked) {
   console.info(
@@ -20,5 +21,9 @@ if (isDeploymentLocked) {
   console.info(`Deployments are unlocked, starting the building process...`);
 }
 
+const tasks = buildOnly
+  ? [buildProjects, buildHeroes]
+  : [updateProjects, buildProjects, updateHeroes, buildHeroes, notify];
+
 // Compose the tasks that need to be run every day
-runTasks([updateProjects, buildProjects, updateHeroes, buildHeroes, notify]);
+runTasks(tasks);
