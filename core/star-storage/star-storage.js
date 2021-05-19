@@ -156,22 +156,30 @@ function computeTrends(snapshots, referenceDate) {
     ? snapshots.find(snapshot => toDate(snapshot) < referenceDate) // for the Rising Stars trends are computed based on a given reference date
     : snapshots[0]; // the most recent snapshot is the reference of the daily build process
 
-  const findSnapshotDaysAgo = days =>
-    snapshots.find(snapshot => diffDay(referenceSnapshot, snapshot) >= days);
+  const findSnapshotDaysAgo = (days, exactMatch) =>
+    exactMatch
+      ? snapshots.find(
+          snapshot => diffDay(referenceSnapshot, snapshot) === days
+        )
+      : snapshots.find(
+          snapshot => diffDay(referenceSnapshot, snapshot) >= days
+        );
 
-  const getDelta = days => {
+  const getDelta = (days, exactMatch) => {
     if (snapshots.length < 2) return undefined;
-    const snapshot = findSnapshotDaysAgo(days);
+    const snapshot = findSnapshotDaysAgo(days, exactMatch);
     if (!snapshot) return undefined;
     return referenceSnapshot.stars - snapshot.stars;
   };
 
   return {
-    daily: getDelta(1),
-    weekly: getDelta(7),
-    monthly: getDelta(30),
-    quarterly: getDelta(90),
-    yearly: getDelta(365)
+    // for daily and weekly trends, we need to snapshots taken exactly 1 day and 7 days ago
+    daily: getDelta(1, true),
+    weekly: getDelta(7, true),
+    // for other trends, we are less strict to handle situations where we don't have snapshots for all the days
+    monthly: getDelta(30, false),
+    quarterly: getDelta(90, false),
+    yearly: getDelta(365, false)
   };
 }
 
