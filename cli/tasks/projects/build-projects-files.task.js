@@ -24,7 +24,6 @@ module.exports = createTask("build-projects-json-files", async context => {
     const projects = allProjects
       .filter(item => !!item) // remove null items that might be created if error occurred
       .filter(project => project.trends.daily !== undefined)
-      .filter(project => project.stars >= 50) // show only projects with more than 50 stars
       .filter(project =>
         project.trends.yearly !== undefined
           ? project.trends.yearly > 50 || !!project.icon // remove cold projects, except if they are featured
