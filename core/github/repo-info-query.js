@@ -116,7 +116,10 @@ function removeGitHubEmojis(input) {
 }
 
 function removeGenericEmojis(input) {
-  return input.replace(emojiRegex(), "").trim();
+  return input
+    .replace(emojiRegex(), "")
+    .replace(new RegExp(String.fromCharCode(65039), "g"), "") // clean weird white chars around emojis (E.g. ChakraUI)
+    .trim();
 }
 
 module.exports = {
