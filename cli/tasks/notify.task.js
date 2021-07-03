@@ -1,6 +1,7 @@
 const got = require("got");
 const fs = require("fs-extra");
 const path = require("path");
+const { DateTime } = require("luxon");
 const debug = require("debug")("notify");
 
 const { createTask } = require("../task-runner");
@@ -36,10 +37,20 @@ async function fetchHottestProjects() {
     project.trends.daily > 0 ? project.trends.daily : 0;
 
   const topProjects = projects
+    .filter(isIncludedInHotProjects)
     .sort((a, b) => (score(a) > score(b) ? -1 : 1))
     .slice(0, 5);
   return topProjects;
 }
+
+const isIncludedInHotProjects = project => {
+  const hotProjectsExcludedTags = ["meta", "learning"];
+
+  const hasExcludedTag = hotProjectsExcludedTags.some(tag =>
+    project.tags.includes(tag)
+  );
+  return !hasExcludedTag;
+};
 
 function readRankingsFile() {
   const filePath = path.join(process.cwd(), "build", "projects.json");
@@ -47,11 +58,11 @@ function readRankingsFile() {
 }
 
 async function notifySlack({ projects, url, channel, dryRun }) {
-  const text = "TOP 5 Hottest Projects Today";
+  const text = `TOP 5 Hottest Projects Today (${formatTodayDate()})`;
 
   const attachments = projects.map((project, i) => {
     const stars = project.trends.daily;
-    const text = `Number ${i + 1} +${stars} stars since today:`;
+    const text = `Number ${i + 1} +${stars} stars since yesterday:`;
     return projectToSlackAttachment(project, text);
   });
 
@@ -65,12 +76,12 @@ async function notifySlack({ projects, url, channel, dryRun }) {
 }
 
 async function notifyDiscord({ projects, url, dryRun }) {
-  const text = "TOP 5 Hottest Projects Today";
+  const text = `TOP 5 Hottest Projects Today (${formatTodayDate()})`;
   const colors = ["9c0042", "d63c4a", "f76d42", "ffae63", "ffe38c"]; // hex colors without the `#`
 
   const embeds = projects.map((project, index) => {
     const stars = project.trends.daily;
-    const text = `+${stars} stars since today [number ${index + 1}]`;
+    const text = `+${stars} stars since yesterday [number ${index + 1}]`;
     const color = colors[index];
     return projectToDiscordEmbed(project, text, color);
   });
@@ -167,4 +178,12 @@ async function sendMessageToDiscord(text, { url, embeds }) {
   } catch (error) {
     throw new Error(`Invalid response from Discord ${error.message}`);
   }
+}
+
+function formatTodayDate() {
+  return DateTime.fromJSDate(new Date()).toLocaleString({
+    month: "long",
+    day: "numeric",
+    weekday: "long"
+  });
 }
