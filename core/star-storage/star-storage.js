@@ -174,7 +174,7 @@ function computeTrends(snapshots, referenceDate) {
 
   return {
     // for daily and weekly trends, we need to snapshots taken exactly 1 day and 7 days ago
-    daily: getDelta(2, true),
+    daily: getDelta(1, true),
     weekly: getDelta(7, true),
     // for other trends, we are less strict to handle situations where we don't have snapshots for all the days
     monthly: getDelta(30, false),
