@@ -1,22 +1,27 @@
 const { flatten, orderBy, uniqBy } = require("lodash");
-
+const { getMonthlyDelta } = require("@bestofjs/snapshots");
 const { createTask } = require("../../task-runner");
 
+const CURRENT_YEAR = 2021;
+
 const tags = [
-  "angular",
+  // "angular",
   "auto",
   "build",
   "compiler",
+  "css-lib",
   "css-in-js",
+  "desktop",
   "framework",
   "graphql",
-  "ide",
+  // "ide",
   "learning",
   "react",
   "react-native",
   "mobile",
   "nodejs-framework",
   "ssg",
+  "state",
   "test-framework",
   "test",
   "vue"
@@ -42,19 +47,25 @@ module.exports = createTask("build-rising-stars", async context => {
 });
 
 const readProject = ({ starStorage }) => async project => {
-  const { trends, timeSeries } = await starStorage.computeAllTrends(
-    project._id,
-    { referenceDate: new Date("2020-01-01T10:10:00.000Z") }
+  const { snapshots } = await starStorage.computeAllTrends(
+    project._id
+    // { referenceDate: new Date("2020-01-01T10:10:00.000Z") }
   );
 
-  const monthly = timeSeries.monthly.reverse().map(({ delta }) => delta);
+  const stars = project.github.stargazers_count;
+  const delta = getYearlyDelta(project, snapshots, CURRENT_YEAR);
+
+  const months = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+  const monthly = months.map(month =>
+    getMonthlyDelta(snapshots, { year: CURRENT_YEAR, month })
+  );
 
   const data = {
     name: project.name,
     full_name: project.github.full_name,
     description: project.getDescription(),
-    stars: project.github.stargazers_count,
-    delta: trends.yearly,
+    stars,
+    delta,
     monthly,
     tags: project.tags.map(tag => tag.code),
     owner_id: project.github.owner_id,
@@ -96,3 +107,31 @@ const getTopProjectsByCategory = projects => tagName => {
     })
     .slice(0, 20);
 };
+
+function getYearlyDelta(project, snapshots, year) {
+  const finalSnapshot = getFinalSnapshot(snapshots, year);
+  if (!finalSnapshot) return 0;
+  const finalValue = finalSnapshot.stars;
+  const initialValue = wasCreatedThisYear(project, year)
+    ? 0
+    : getInitialSnapshot(snapshots, year).stars;
+  const delta = finalValue - initialValue;
+  return delta;
+}
+
+function wasCreatedThisYear(project, year) {
+  const { created_at } = project.github;
+  const date = new Date(created_at);
+  const createdYear = date.getFullYear();
+  return createdYear === year;
+}
+
+function getInitialSnapshot(snapshots, year) {
+  return snapshots.find(snapshot => snapshot.year === year);
+}
+
+function getFinalSnapshot(snapshots, year) {
+  const reversedSnapshots = snapshots.slice();
+  reversedSnapshots.reverse();
+  return reversedSnapshots.find(snapshot => snapshot.year === year);
+}

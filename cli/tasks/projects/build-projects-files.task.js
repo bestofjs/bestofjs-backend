@@ -1,4 +1,4 @@
-const { omit, orderBy, pick } = require("lodash");
+const { omit, orderBy } = require("lodash");
 
 const { createTask } = require("../../task-runner");
 
@@ -10,13 +10,9 @@ module.exports = createTask("build-projects-json-files", async context => {
     query: { deprecated: false, disabled: false } // don't include "disabled" projects in built files
   });
 
-  await buildFullList(projects, context);
+  await buildMainList(projects, context);
 
-  // await buildNpmList(projects, context);
-
-  // await buildStateOfJavaScriptList(projects, context);
-
-  async function buildFullList(allProjects, context) {
+  async function buildMainList(allProjects, context) {
     const { logger } = context;
 
     const allTags = await fetchTags(context);
@@ -24,9 +20,10 @@ module.exports = createTask("build-projects-json-files", async context => {
     const projects = allProjects
       .filter(item => !!item) // remove null items that might be created if error occurred
       .filter(project => project.trends.daily !== undefined)
+      // .filter(project => project.stars >= 50) // show only projects with more than 50 stars
       .filter(project =>
         project.trends.yearly !== undefined
-          ? project.trends.yearly > 50 || !!project.icon // remove cold projects, except if they are featured
+          ? project.trends.yearly > 25 || !!project.icon // remove cold projects, except if they are featured
           : true
       )
       .filter(project => !isInactiveProject(project))
@@ -45,7 +42,7 @@ module.exports = createTask("build-projects-json-files", async context => {
 
   function compactProjectData(project) {
     const compactData = {
-      ...omit(project, ["version"]),
+      ...omit(project, ["added_at"]),
       description: truncate(project.description, 75)
     };
     return compactData;
@@ -54,32 +51,6 @@ module.exports = createTask("build-projects-json-files", async context => {
   function truncate(input, maxLength = 50) {
     const isTruncated = input.length > maxLength;
     return isTruncated ? `${input.slice(0, maxLength)}...` : input;
-  }
-
-  async function buildNpmList(allProjects) {
-    const projects = allProjects
-      .filter(project => !!project.npm)
-      .filter(project => project.trends.daily !== undefined);
-    const count = projects.length;
-    const date = new Date();
-    await saveJSON({ date, count, projects }, "npm-projects.json");
-  }
-
-  async function buildStateOfJavaScriptList(allProjects) {
-    const projects = allProjects.map(project =>
-      pick(project, [
-        "name",
-        "stars",
-        "npm",
-        "full_name",
-        "description",
-        "url",
-        "aliases"
-      ])
-    );
-    const count = projects.length;
-    const date = new Date();
-    await saveJSON({ date, count, projects }, "stateofjs-projects.json");
   }
 });
 
@@ -96,7 +67,8 @@ const readProject = ({ starStorage }) => async project => {
     contributor_count: project.github.contributor_count,
     pushed_at: formatDate(project.github.last_commit),
     owner_id: project.github.owner_id,
-    created_at: formatDate(project.github.created_at)
+    created_at: formatDate(project.github.created_at),
+    added_at: project.createdAt
   };
 
   const url = project.getURL();
@@ -113,7 +85,6 @@ const readProject = ({ starStorage }) => async project => {
   // Add npm data if available
   if (project.npm && project.npm.name) {
     data.npm = project.npm.name;
-    data.version = project.npm.version;
     if (project.downloads) {
       data.downloads = project.downloads.monthly;
     }

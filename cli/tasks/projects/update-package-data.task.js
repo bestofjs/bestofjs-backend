@@ -100,24 +100,28 @@ const fetchBundleData = ({ logger }) => async project => {
     previousVersion: get(project, "bundle.version") || "(nothing)"
   });
 
-  const bundleData = await getBundleData(project.npm.name);
-  const isError = !!bundleData.error;
-  const bundle = isError
-    ? { errorMessage: bundleData.error.message || "Error!" }
-    : {
-        name: bundleData.name,
-        dependencyCount: bundleData.dependencyCount,
-        gzip: bundleData.gzip,
-        size: bundleData.size,
-        version: bundleData.version
-      };
-  logger.debug("Bundle data to be saved", bundle);
-  return { ...bundle, updatedAt: new Date() };
+  try {
+    const bundleData = await getBundleData(project.npm.name);
+    const bundle = {
+      name: bundleData.name,
+      dependencyCount: bundleData.dependencyCount,
+      gzip: bundleData.gzip,
+      size: bundleData.size,
+      version: bundleData.version
+    };
+    logger.debug("Bundle data to be saved", bundle);
+    return { ...bundle, updatedAt: new Date() };
+  } catch (error) {
+    return {
+      errorMessage: error.message || "Unexpected error",
+      updatedAt: new Date()
+    };
+  }
 };
 
 const isBundleUpdateNeeded = project => {
-  const isError = !!get(project.toObject(), "bundle.errorMessage");
-  if (isError) return false; // don't try to fetch data if there was a build error previously
+  // const isError = !!get(project.toObject(), "bundle.errorMessage");
+  // if (isError) return false; // don't try to fetch data if there was a build error previously
   const projectJson = project.toObject();
   const npmVersion = get(projectJson, "npm.version");
   const npmName = get(projectJson, "npm.name");
@@ -161,13 +165,13 @@ const fetchPackageSizeData = ({ logger }) => async project => {
 };
 
 function isPackageSizeUpdateNeeded({ project, logger }) {
-  const isError = !!get(project.toObject(), "packageSize.errorMessage");
-  if (isError) {
-    logger.debug(
-      `Don't fetch package size data because of the previous error ${project.name}`
-    );
-    return false; // don't try to fetch data if there was a build error previously
-  }
+  // const isError = !!get(project.toObject(), "packageSize.errorMessage");
+  // if (isError) {
+  //   logger.debug(
+  //     `Don't fetch package size data because of the previous error ${project.name}`
+  //   );
+  //   return false; // don't try to fetch data if there was a build error previously
+  // }
   const projectJson = project.toObject();
   const npmVersion = get(projectJson, "npm.version");
   const projectSizeVersion = get(projectJson, "packageSize.version");
