@@ -147,7 +147,8 @@ function createTaskRunner(options = {}) {
           processHeroes: params =>
             processHeroes({ ...params, context, options }),
           getGitHubClient,
-          saveJSON
+          saveJSON,
+          options
         },
         options
       );

@@ -1,5 +1,4 @@
-const { omit, orderBy, pick } = require("lodash");
-const { default: slugify } = require("slugify");
+const { omit, orderBy } = require("lodash");
 
 const { createTask } = require("../../task-runner");
 
@@ -13,12 +12,6 @@ module.exports = createTask("build-projects-json-files", async context => {
 
   await buildMainList(projects, context);
 
-  await buildFullList(projects, context);
-
-  // await buildNpmList(projects, context);
-
-  await buildStateOfJS(projects, context);
-
   async function buildMainList(allProjects, context) {
     const { logger } = context;
 
@@ -27,10 +20,10 @@ module.exports = createTask("build-projects-json-files", async context => {
     const projects = allProjects
       .filter(item => !!item) // remove null items that might be created if error occurred
       .filter(project => project.trends.daily !== undefined)
-      .filter(project => project.stars >= 50) // show only projects with more than 50 stars
+      // .filter(project => project.stars >= 50) // show only projects with more than 50 stars
       .filter(project =>
         project.trends.yearly !== undefined
-          ? project.trends.yearly > 50 || !!project.icon // remove cold projects, except if they are featured
+          ? project.trends.yearly > 25 || !!project.icon // remove cold projects, except if they are featured
           : true
       )
       .filter(project => !isInactiveProject(project))
@@ -58,38 +51,6 @@ module.exports = createTask("build-projects-json-files", async context => {
   function truncate(input, maxLength = 50) {
     const isTruncated = input.length > maxLength;
     return isTruncated ? `${input.slice(0, maxLength)}...` : input;
-  }
-
-  async function buildNpmList(allProjects) {
-    const projects = allProjects
-      .filter(project => !!project.npm)
-      .filter(project => project.trends.daily !== undefined);
-    const count = projects.length;
-    const date = new Date();
-    await saveJSON({ date, count, projects }, "npm-projects.json");
-  }
-
-  async function buildStateOfJS(allProjects) {
-    const projects = allProjects.map(project => ({
-      id: slugify(project.name, { lower: true, remove: /[.']/g }),
-      name: project.name,
-      npm: project.npm,
-      github: project.full_name,
-      description: truncate(project.description, 100),
-      homepage: project.url
-    }));
-    const date = new Date();
-    const count = projects.length;
-    await saveJSON({ date, count, projects }, "stateofjs-projects.json");
-  }
-
-  async function buildFullList(allProjects) {
-    const projects = allProjects
-      .filter(item => !!item) // remove null items that might be created if error occurred
-      .filter(project => project.trends.daily !== undefined);
-    const count = projects.length;
-    const date = new Date();
-    await saveJSON({ date, count, projects }, "project-full-list.json");
   }
 });
 
