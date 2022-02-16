@@ -19,13 +19,8 @@ module.exports = createTask("build-projects-json-files", async context => {
 
     const projects = allProjects
       .filter(item => !!item) // remove null items that might be created if error occurred
-      .filter(project => project.trends.daily !== undefined)
-      // .filter(project => project.stars >= 50) // show only projects with more than 50 stars
-      .filter(project =>
-        project.trends.yearly !== undefined
-          ? project.trends.yearly > 25 || !!project.icon // remove cold projects, except if they are featured
-          : true
-      )
+      .filter(project => project.trends.daily !== undefined) // new projects need to include at least the daily trend
+      .filter(project => !isColdProject(project))
       .filter(project => !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
 
@@ -119,23 +114,28 @@ function fetchTags({ models: { Tag } }) {
 const findProjectByTagId = projects => tagId =>
   projects.find(({ tags }) => tags.includes(tagId));
 
-const getYearsSinceLastCommit = project => {
-  const lastCommit = new Date(project.pushed_at);
-  return (today - lastCommit) / 1000 / 3600 / 24 / 365;
-};
+function isColdProject(project) {
+  const delta = project.trends.yearly;
+  if (delta === undefined) return false;
+  return delta < 25;
+}
 
-const today = new Date();
-
-const isInactiveProject = project => {
+function isInactiveProject(project) {
   const delta = project.trends.yearly;
   if (delta === undefined) return false;
   return Math.floor(getYearsSinceLastCommit(project)) > 0 && delta < 100;
-};
+}
 
 function getDailyHotProjects(projects) {
   return orderBy(projects, "trends.daily", "desc")
     .slice(0, 5)
     .map(project => `${project.name} (+${project.trends.daily})`);
+}
+
+function getYearsSinceLastCommit(project) {
+  const today = new Date();
+  const lastCommit = new Date(project.pushed_at);
+  return (today - lastCommit) / 1000 / 3600 / 24 / 365;
 }
 
 function formatDate(date) {
