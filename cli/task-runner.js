@@ -103,10 +103,7 @@ function createTaskRunner(options = {}) {
     const mongo_uri = process.env[mongo_key];
     if (!mongo_uri) throw new Error(`"${mongo_key}" env. variable is empty!`);
     logger.verbose(`Connecting to the database "${mongo_key}"...`);
-    await mongoose.connect(mongo_uri, {
-      useNewUrlParser: true,
-      useCreateIndex: true
-    });
+    await mongoose.connect(mongo_uri);
     const dbName = last(mongo_uri.split("/"));
     logger.info(`Connected to the database "${mongo_key}" ${dbName}`);
   };
