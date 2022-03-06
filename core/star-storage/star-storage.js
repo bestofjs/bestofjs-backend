@@ -32,7 +32,11 @@ function createStarStorage(collection) {
       );
     const query = { project: ObjectId(projectId), year };
     debug("Updating...", months[months.length - 1]);
-    const { result } = await collection.updateOne(
+    const {
+      acknowledged,
+      modifiedCount,
+      upsertedCount
+    } = await collection.updateOne(
       query,
       {
         $set: { months, updatedAt: new Date() },
@@ -41,14 +45,13 @@ function createStarStorage(collection) {
 
       { upsert: true }
     );
-    const { ok, nModified, upserted } = result;
-    if (upserted) {
+    if (upsertedCount) {
       debug("Snapshot document created");
     }
-    if (nModified === 1) {
+    if (modifiedCount === 1) {
       debug("Snapshot document updated");
     }
-    return ok === 1;
+    return acknowledged === 1;
   }
 
   async function addSnapshot(
@@ -174,7 +177,7 @@ function computeTrends(snapshots, referenceDate) {
 
   return {
     // for daily and weekly trends, we need to snapshots taken exactly 1 day and 7 days ago
-    daily: Math.floor(getDelta(1, true)),
+    daily: getDelta(1, true),
     weekly: getDelta(7, true),
     // for other trends, we are less strict to handle situations where we don't have snapshots for all the days
     monthly: getDelta(30, false),
