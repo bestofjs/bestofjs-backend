@@ -1,0 +1,11 @@
+name: Daily build webhook
+on:
+  # Triggers the workflow every day at 21:00 GMT
+  schedule:
+    - cron: "0 21 * * *"
+
+jobs:
+- name: send_webhook
+  uses: joelwmale/webhook-action@master
+  with:
+    url: ${{ secrets.WEBHOOK_URL }}
