@@ -9,6 +9,6 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Send webhook to trigger the build
-        uses: joelwmale/webhook-action@latest
+        uses: joelwmale/webhook-action@master
         with:
           url: ${{ secrets.WEBHOOK_URL  }}
