@@ -5,7 +5,10 @@ on:
     - cron: "0 21 * * *"
 
 jobs:
-- name: send_webhook
-  uses: joelwmale/webhook-action@master
-  with:
-    url: ${{ secrets.WEBHOOK_URL }}
+ deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Send webhook to trigger the build
+        uses: joelwmale/webhook-action@latest
+        with:
+          url: ${{ secrets.WEBHOOK_URL  }}
