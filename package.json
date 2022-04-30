@@ -1,6 +1,6 @@
 {
   "name": "bestofjs-backend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Best of JavaScript backend applications",
   "scripts": {
     "build": "node cli/tasks/daily-process",
@@ -13,7 +13,7 @@
   "author": "Michael Rambeau",
   "license": "MIT",
   "engines": {
-    "node": ">=10.14.2"
+    "node": ">=16.14.2"
   },
   "repository": {
     "type": "git",
