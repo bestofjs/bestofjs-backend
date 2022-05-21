@@ -20,8 +20,8 @@ module.exports = createTask("build-projects-json-files", async context => {
     const projects = allProjects
       .filter(item => !!item) // remove null items that might be created if error occurred
       .filter(project => project.trends.daily !== undefined) // new projects need to include at least the daily trend
-      .filter(project => !isColdProject(project))
-      .filter(project => !isInactiveProject(project))
+      .filter(project => isFeaturedProject(project) || !isColdProject(project))
+      .filter(project => isFeaturedProject(project) || !isInactiveProject(project))
       .map(compactProjectData); // we don't need the `version` in `projects.json`
 
     logger.info(`${projects.length} projects to include in the JSON file`, {
@@ -124,6 +124,12 @@ function isInactiveProject(project) {
   const delta = project.trends.yearly;
   if (delta === undefined) return false;
   return Math.floor(getYearsSinceLastCommit(project)) > 0 && delta < 100;
+}
+
+// a project is considered as "Featured" if it has a specific logo
+// we want to show them in the UI even if they are cold or inactive
+function isFeaturedProject(project) {
+  return project.icon
 }
 
 function getDailyHotProjects(projects) {
