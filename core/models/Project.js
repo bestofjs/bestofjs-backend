@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const isAbsoluteURL = require("is-absolute-url");
-const emojiRegex = require("emoji-regex");
 const isURL = require("validator/lib/isURL");
 
 const fields = {
@@ -103,10 +102,9 @@ schema.methods.toString = function() {
 schema.methods.getDescription = function() {
   const { description: gitHubDescription } = this.github;
 
-  const input = gitHubDescription && !this.override_description
+  return gitHubDescription && !this.override_description
     ? gitHubDescription
     : this.description;
-  return removeGenericEmojis(input)  
 };
 
 schema.methods.getURL = function() {
@@ -144,12 +142,4 @@ function isValidProjectURL(url) {
   }
 
   return true;
-}
-
-
-function removeGenericEmojis(input) {
-  return input
-    .replace(emojiRegex(), "")
-    .replace(new RegExp(String.fromCharCode(65039), "g"), "") // clean weird white chars around emojis (E.g. ChakraUI)
-    .trim();
 }
