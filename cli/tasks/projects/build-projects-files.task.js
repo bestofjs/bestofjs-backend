@@ -1,9 +1,10 @@
 const { omit, orderBy } = require("lodash");
+const { default: slugify } = require("slugify");
 
 const { createTask } = require("../../task-runner");
 
 module.exports = createTask("build-projects-json-files", async context => {
-  const { processProjects, starStorage, saveJSON } = context;
+  const { processProjects, starStorage } = context;
 
   const { data: projects } = await processProjects({
     handler: readProject({ starStorage }),
@@ -11,43 +12,68 @@ module.exports = createTask("build-projects-json-files", async context => {
   });
 
   await buildMainList(projects, context);
-
-  async function buildMainList(allProjects, context) {
-    const { logger } = context;
-
-    const allTags = await fetchTags(context);
-
-    const projects = allProjects
-      .filter(item => !!item) // remove null items that might be created if error occurred
-      .filter(project => project.trends.daily !== undefined) // new projects need to include at least the daily trend
-      .filter(project => isFeaturedProject(project) || !isColdProject(project))
-      .filter(project => isFeaturedProject(project) || !isInactiveProject(project))
-      .map(compactProjectData); // we don't need the `version` in `projects.json`
-
-    logger.info(`${projects.length} projects to include in the JSON file`, {
-      hot: getDailyHotProjects(projects)
-    });
-    const date = new Date();
-
-    const tags = allTags.filter(
-      ({ code }) => !!findProjectByTagId(projects)(code)
-    );
-    await saveJSON({ date, tags, projects }, "projects.json");
-  }
-
-  function compactProjectData(project) {
-    const compactData = {
-      ...omit(project, ["added_at"]),
-      description: truncate(project.description, 75)
-    };
-    return compactData;
-  }
-
-  function truncate(input, maxLength = 50) {
-    const isTruncated = input.length > maxLength;
-    return isTruncated ? `${input.slice(0, maxLength)}...` : input;
-  }
+  await buildFullList(projects, context);
 });
+
+async function buildMainList(allProjects, context) {
+  const { logger, saveJSON } = context;
+
+  const allTags = await fetchTags(context);
+
+  const projects = allProjects
+    .filter(item => !!item) // remove null items that might be created if error occurred
+    .filter(project => project.trends.daily !== undefined) // new projects need to include at least the daily trend
+    .filter(project => isFeaturedProject(project) || !isColdProject(project))
+    .filter(
+      project => isFeaturedProject(project) || !isInactiveProject(project)
+    )
+    .map(compactProjectData); // we don't need the `version` in `projects.json`
+
+  logger.info(`${projects.length} projects to include in the main JSON file`, {
+    hot: getDailyHotProjects(projects)
+  });
+  const date = new Date();
+
+  const tags = allTags.filter(
+    ({ code }) => !!findProjectByTagId(projects)(code)
+  );
+  await saveJSON({ date, tags, projects }, "projects.json");
+}
+
+async function buildFullList(allProjects, context) {
+  const { logger, saveJSON } = context;
+
+  const projects = allProjects
+    .filter(item => !!item) // remove null items that might be created if error occurred
+    .map(getFullProjectData);
+
+  logger.info(`${projects.length} projects to include in the full list`);
+  const date = new Date();
+
+  await saveJSON({ date, count: projects.length, projects }, "projects-full.json");
+}
+
+function compactProjectData(project) {
+  const compactData = {
+    ...omit(project, ["added_at"]),
+    description: truncate(project.description, 75)
+  };
+  return compactData;
+}
+
+function getFullProjectData(project) {
+  const fullData = {
+    slug: slugify(project.name, { lower: true, remove: /[.']/g }),
+    ...project,
+    description: truncate(project.description, 150)
+  };
+  return fullData;
+}
+
+function truncate(input, maxLength = 50) {
+  const isTruncated = input.length > maxLength;
+  return isTruncated ? `${input.slice(0, maxLength)}...` : input;
+}
 
 const readProject = ({ starStorage }) => async project => {
   const trends = await starStorage.getTrends(project._id);
@@ -129,7 +155,7 @@ function isInactiveProject(project) {
 // a project is considered as "Featured" if it has a specific logo
 // we want to show them in the UI even if they are cold or inactive
 function isFeaturedProject(project) {
-  return project.icon
+  return project.icon;
 }
 
 function getDailyHotProjects(projects) {

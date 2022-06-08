@@ -23,7 +23,7 @@
     "@bestofjs/snapshots": "0.0.3",
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
-    "emoji-regex": "^8.0.0",
+    "emoji-regex": "^10.1.0",
     "fs-extra": "^8.0.1",
     "gh-got": "^8.1.0",
     "got": "^9.5.0",
