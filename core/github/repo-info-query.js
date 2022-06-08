@@ -1,4 +1,4 @@
-const emojiRegex = require("emoji-regex/es2015");
+const emojiRegex = require("emoji-regex");
 
 const queryRepoInfo = `query getRepoInfo($owner: String!, $name: String!) {
   repository(owner: $owner, name: $name) {
