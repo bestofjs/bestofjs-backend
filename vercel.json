@@ -15,7 +15,6 @@
     }
   ],
   "env": {
-    "DB_ENV": "production",
-    "MONGO_URI_PRODUCTION": "@mongo_uri_production"
+    "DB_ENV": "production"
   }
 }
