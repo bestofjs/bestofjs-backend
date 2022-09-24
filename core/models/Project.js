@@ -115,9 +115,6 @@ schema.methods.getURL = function() {
 };
 
 const model = mongoose.model("Project", schema);
-const collection = model.collection;
-collection.createIndex({ "github.full_name": 1 });
-collection.createIndex({ "github.name": 1 });
 
 module.exports = model;
 
