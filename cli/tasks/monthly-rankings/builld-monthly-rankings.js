@@ -71,8 +71,8 @@ const readProject = ({ starStorage, year, month }) => async project => {
     data.url = url;
   }
 
-  if (project.icon && project.icon.url) {
-    data.icon = project.icon.url;
+  if (project.logo) {
+    data.icon = project.logo;
   }
 
   return {

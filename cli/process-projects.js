@@ -111,7 +111,7 @@ async function fetchProjects({
     //   override_url: 1,
     //   github: 1,
     //   npm: 1,
-    //   icon: 1
+    //   logo: 1
     // })
     .populate({ path: "tags", select: { name: 1, code: 1, _id: 0 } })
     .sort(sort)

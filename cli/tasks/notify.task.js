@@ -102,7 +102,7 @@ function projectToSlackAttachment(project, pretext) {
   const url = project.url || `https://github.com/${project.full_name}`;
   const owner = project.full_name.split("/")[0];
   const author_name = owner;
-  // `thumb_url` does not accept .svg files so we don't use project `icon` property
+  // `thumb_url` does not accept .svg files so we don't use project `logo` property
   const thumb_url = `https://avatars.githubusercontent.com/u/${project.owner_id}?v=3&s=75`;
   const attachment = {
     color: "#e65100",

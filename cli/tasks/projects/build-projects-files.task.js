@@ -111,9 +111,9 @@ const readProject = ({ starStorage }) => async project => {
     }
   }
 
-  // Project custom icon (will be displayed instead of Github owner's avatar)
-  if (project.icon && project.icon.url) {
-    data.icon = project.icon.url;
+  // Project custom logo (will be displayed instead of Github owner's avatar)
+  if (project.logo) {
+    data.icon = project.logo;
   }
 
   if (project.aliases.length > 0) {
@@ -155,7 +155,7 @@ function isInactiveProject(project) {
 // a project is considered as "Featured" if it has a specific logo
 // we want to show them in the UI even if they are cold or inactive
 function isFeaturedProject(project) {
-  return project.icon;
+  return !!project.logo;
 }
 
 function getDailyHotProjects(projects) {

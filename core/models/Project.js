@@ -79,9 +79,7 @@ const fields = {
       final: Number
     }
   },
-  icon: {
-    url: String
-  },
+  logo: String,
   colors: {
     vibrant: String
   },
