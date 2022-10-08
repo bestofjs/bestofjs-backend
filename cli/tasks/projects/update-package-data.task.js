@@ -6,7 +6,6 @@ const npmClient = createNpmClient();
 
 const { createTask } = require("../../task-runner");
 const {
-  getNpmsData,
   getBundleData,
   getPackageSizeData,
   formatDependencies
@@ -27,7 +26,6 @@ const updatePackageData = context => async project => {
 
   const requests = {
     npm: fetchNpmRegistryData,
-    npms: fetchNpmsData,
     bundle: fetchBundleData,
     packageSize: fetchPackageSizeData,
     downloads: fetchDownloadData
@@ -74,19 +72,6 @@ const fetchNpmRegistryData = ({ logger }) => async project => {
 
   logger.debug("NPM data", npmData);
   return npmData;
-};
-
-const fetchNpmsData = ({ logger }) => async project => {
-  logger.debug("Fetch score from npms.io API");
-  const {
-    score: { detail, final }
-  } = await getNpmsData(project.npm.name);
-  const score = {
-    detail: mapValues(detail, formatScore),
-    final: formatScore(final)
-  };
-  logger.debug("Score from npms.io", score);
-  return { score };
 };
 
 const fetchBundleData = ({ logger }) => async project => {
@@ -177,10 +162,6 @@ function isPackageSizeUpdateNeeded({ project, logger }) {
   const projectSizeVersion = get(projectJson, "packageSize.version");
   return npmVersion !== projectSizeVersion;
 }
-
-// Format score numbers from packagequality.com and npms.im into percents, with no decimals
-// We may have no score to format (`ngx-datatable` cannot be found on packagequality.com)
-const formatScore = score => (score ? Math.round(score * 100) : 0);
 
 const fetchDownloadData = ({ logger }) => async project => {
   const downloadCount = await npmClient.fetchMonthlyDownloadCount(

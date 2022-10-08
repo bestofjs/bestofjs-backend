@@ -33,7 +33,6 @@ const fields = {
     pushed_at: Date,
     last_commit: Date,
     branch: String,
-    packageJson: Boolean,
     owner_id: Number,
     topics: Array,
     commit_count: Number,
@@ -66,24 +65,7 @@ const fields = {
     version: String,
     errorMessage: String
   },
-  packagequality: {
-    quality: Number
-  },
-  npms: {
-    score: {
-      detail: {
-        maintenance: Number,
-        popularity: Number,
-        quality: Number
-      },
-      final: Number
-    }
-  },
   logo: String,
-  colors: {
-    vibrant: String
-  },
-  trends: Object,
   twitter: String,
   aliases: [String]
 };
@@ -112,6 +94,13 @@ schema.methods.getURL = function() {
   return homepage && isValidProjectURL(homepage) ? homepage : this.url;
 };
 
+// At first projects are created with only a `repository` URL
+// The daily script updates the `full_name` property for GitHub,
+// which can be different from the one in the repository when projects move to a different org.
+schema.methods.getFullName = function() {
+  return this.github.full_name || parseGitHubURL(this.repository);
+};
+
 const model = mongoose.model("Project", schema);
 
 module.exports = model;
@@ -137,4 +126,16 @@ function isValidProjectURL(url) {
   }
 
   return true;
+}
+
+function parseGitHubURL(url) {
+  const re = new RegExp(
+    "https://github.com/([a-zA-Z0-9._-]+)/([a-zA-Z0-9._-]+)"
+  );
+  const parts = re.exec(url);
+  if (!parts) return "";
+  if (parts.length < 3) return "";
+  const owner = parts[1];
+  const name = parts[2];
+  return `${owner}/${name}`;
 }

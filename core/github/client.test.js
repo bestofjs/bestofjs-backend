@@ -56,7 +56,7 @@ async function testUserInfo() {
 async function testRepoDescription() {
   const { description } = await client.fetchRepoInfo("nodejs/node");
   debug(description);
-  assert.equal(description, "Node.js runtime");
+  assert.equal(description, "Node.js JavaScript runtime");
 }
 
 main();

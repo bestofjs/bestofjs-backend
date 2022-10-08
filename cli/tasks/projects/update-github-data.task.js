@@ -16,10 +16,9 @@ const updateGithubProject = ({ client, starStorage }) => async (
   { logger, readonly }
 ) => {
   logger.debug("STEP 1: get project data from Github API");
-  const githubData = await client.fetchRepoInfo(project.github.full_name);
+  const githubData = await client.fetchRepoInfo(project.getFullName());
   const { full_name, stargazers_count: stars } = githubData;
 
-  // Disable contributor_count request
   logger.debug("STEP 2: Get `contributor_count` by scrapping Github web page");
   const contributor_count = await client.fetchContributorCount(full_name);
   logger.debug("Data from scraping", { contributor_count });
