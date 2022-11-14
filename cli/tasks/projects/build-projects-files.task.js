@@ -50,11 +50,15 @@ async function buildFullList(allProjects, context) {
   logger.info(`${projects.length} projects to include in the full list`);
   const date = new Date();
 
-  await saveJSON({ date, count: projects.length, projects }, "projects-full.json");
+  await saveJSON(
+    { date, count: projects.length, projects },
+    "projects-full.json"
+  );
 }
 
 function compactProjectData(project) {
   const compactData = {
+    slug: slugify(project.name, { lower: true, remove: /[.']/g }),
     ...omit(project, ["added_at"]),
     description: truncate(project.description, 75)
   };
@@ -142,13 +146,15 @@ const findProjectByTagId = projects => tagId =>
 
 function isColdProject(project) {
   const delta = project.trends.yearly;
-  if (delta === undefined) return false;
+  const monthlyDownloads = project.downloads;
+  if (delta === undefined) return false; // only consider projects with data covering 1 year
+  if (monthlyDownloads > 100000) return false; // exclude projects with a lots of downloads (E.g. `Testem`)
   return delta < 25;
 }
 
 function isInactiveProject(project) {
   const delta = project.trends.yearly;
-  if (delta === undefined) return false;
+  if (delta === undefined) return false; // only consider projects with data covering 1 year
   return Math.floor(getYearsSinceLastCommit(project)) > 0 && delta < 100;
 }
 
