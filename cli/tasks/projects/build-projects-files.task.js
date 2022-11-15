@@ -149,7 +149,7 @@ function isColdProject(project) {
   const monthlyDownloads = project.downloads;
   if (delta === undefined) return false; // only consider projects with data covering 1 year
   if (monthlyDownloads > 100000) return false; // exclude projects with a lots of downloads (E.g. `Testem`)
-  return delta < 25;
+  return delta < 50;
 }
 
 function isInactiveProject(project) {
