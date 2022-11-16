@@ -149,6 +149,7 @@ async function sendMessageToSlack(text, { url, channel, attachments }) {
   debug("Request", body);
   try {
     const { body: bodyResponse } = await got(url, {
+      method: 'POST',
       body: JSON.stringify(body),
       headers: { "content-type": "application/json" }
     });
