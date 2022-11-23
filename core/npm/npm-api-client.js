@@ -43,7 +43,9 @@ function createNpmClient({ timeout = 1000 } = {}) {
 
     async fetchMonthlyDownloadCount(packageName) {
       const url = `https://api.npmjs.org/downloads/point/last-month/${packageName}`;
-      const { body } = await got(url, { json: true });
+      console.log(url);
+      const { body } = await got(url);
+      console.log(body);
       return body.downloads;
     }
   };
