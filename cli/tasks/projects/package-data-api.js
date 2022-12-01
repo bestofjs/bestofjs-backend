@@ -55,13 +55,12 @@ async function getBundleData(packageName) {
     "x-bundlephobia-user": "bestofjs.com"
   };
   const options = {
-    headers,
-    json: true
+    headers
   };
   debug("Fetching", url);
   try {
-    const { body } = await pTimeout(got(url, options), timeout);
-    return body;
+    const json = await pTimeout(got(url, options).json(), timeout);
+    return json;
   } catch (error) {
     if (error instanceof pTimeout.TimeoutError) {
       throw error;
@@ -79,22 +78,23 @@ async function getPackageSizeData(packageName, version) {
     "x-packagephobia-user": "bestofjs.com"
   };
   const options = {
-    headers,
-    json: true
+    headers
   };
   debug("Fetching", url);
-  const { body } = await pTimeout(got(url, options), timeout).catch(error => {
-    if (error instanceof pTimeout.TimeoutError) {
-      throw error;
+  const json = await pTimeout(got(url, options).json(), timeout).catch(
+    error => {
+      if (error instanceof pTimeout.TimeoutError) {
+        throw error;
+      }
+      // Internal Server Errors (no valid JSON) returned for several projects including `node-sass`
+      const message = `Invalid response from ${url} ${error.message ||
+        "(no message)"}`;
+      return { error: { message } };
     }
-    // Internal Server Errors (no valid JSON) returned for several projects including `node-sass`
-    const message = `Invalid response from ${url} ${error.message ||
-      "(no message)"}`;
-    return { error: { message } };
-  });
-  debug("Response from PackagePhobia", body);
-  if (!body) throw new Error(`No response from PackagePhobia ${packageName}`);
-  return body;
+  );
+  debug("Response from PackagePhobia", json);
+  if (!json) throw new Error(`No response from PackagePhobia ${packageName}`);
+  return json;
 }
 
 module.exports = {
