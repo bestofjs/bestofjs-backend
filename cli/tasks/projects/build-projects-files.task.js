@@ -58,7 +58,6 @@ async function buildFullList(allProjects, context) {
 
 function compactProjectData(project) {
   const compactData = {
-    slug: slugify(project.name, { lower: true, remove: /[.']/g }),
     ...omit(project, ["added_at"]),
     description: truncate(project.description, 75)
   };
