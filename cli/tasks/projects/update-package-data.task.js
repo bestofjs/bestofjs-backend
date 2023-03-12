@@ -26,8 +26,8 @@ const updatePackageData = context => async project => {
 
   const requests = {
     npm: fetchNpmRegistryData,
-    bundle: fetchBundleData,
-    packageSize: fetchPackageSizeData,
+    // bundle: fetchBundleData,
+    // packageSize: fetchPackageSizeData,
     downloads: fetchDownloadData
   };
 
@@ -75,10 +75,10 @@ const fetchNpmRegistryData = ({ logger }) => async project => {
 };
 
 const fetchBundleData = ({ logger }) => async project => {
-  if (!isBundleUpdateNeeded(project)) {
-    logger.debug(`Bundle size data already up-to-date for ${project.name}`);
-    return null;
-  }
+  // if (!isBundleUpdateNeeded(project)) {
+  //   logger.debug(`Bundle size data already up-to-date for ${project.name}`);
+  //   return null;
+  // }
   logger.debug("Fetch data about the bundle size", {
     project: project.name,
     version: get(project, "npm.version"),
@@ -89,10 +89,10 @@ const fetchBundleData = ({ logger }) => async project => {
     const bundleData = await getBundleData(project.npm.name);
     const bundle = {
       name: bundleData.name,
-      dependencyCount: bundleData.dependencyCount,
-      gzip: bundleData.gzip,
-      size: bundleData.size,
-      version: bundleData.version
+      // dependencyCount: bundleData.dependencyCount,
+      gzip: bundleData.size.rawCompressedSize,
+      size: bundleData.size.rawUncompressedSize,
+      // version: bundleData.version
     };
     logger.debug("Bundle data to be saved", bundle);
     return { ...bundle, updatedAt: new Date() };
