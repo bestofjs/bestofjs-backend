@@ -1,0 +1,11 @@
+name: Update package data
+jobs:
+  update-package-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: npm install
+      - run: node run cli/tasks/projects/update-package-data.task.js --limit 100
