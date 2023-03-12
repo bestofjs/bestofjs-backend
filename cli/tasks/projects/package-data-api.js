@@ -48,24 +48,18 @@ function parsePackageName(packageName) {
 }
 
 async function getBundleData(packageName) {
-  const url = `https://bundlephobia.com/api/size?package=${encodeURIComponent(
-    packageName
-  )}`;
-  const headers = {
-    "x-bundlephobia-user": "bestofjs.com"
-  };
-  const options = {
-    headers
-  };
+  const url = `https://deno.bundlejs.com/?q=${encodeURIComponent(packageName)}`;
   debug("Fetching", url);
   try {
-    const json = await pTimeout(got(url, options).json(), timeout);
+    const json = await pTimeout(got(url).json(), timeout);
     return json;
   } catch (error) {
     if (error instanceof pTimeout.TimeoutError) {
+      console.log("Timeout!");
       throw error;
     }
     // Internal Server Errors (no valid JSON)
+    console.error(packageName, error.message);
     throw new Error(`Invalid response from ${url}`);
   }
 }

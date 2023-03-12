@@ -1,4 +1,8 @@
 name: Update package data
+on:
+  # Triggers the workflow every day at 9:00 GMT
+  schedule:
+    - cron: "0 9 * * *"
 jobs:
   update-package-data:
     runs-on: ubuntu-latest

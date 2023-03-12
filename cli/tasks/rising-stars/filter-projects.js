@@ -1,4 +1,4 @@
-const slugify = require('slugify')
+const slugify = require("slugify");
 
 // Given an array of projects sorted by the star added over one year,
 // and an array of categories defined in Rising Stars
@@ -10,10 +10,11 @@ function filterProjects(projects, categories) {
   return getFilteredProjects();
 
   function addProjectsFromOverallCategory() {
+    const excludedTag = ["learning", "meta"];
     const category = categories.find(category => category.key === "all");
     const count = category.count;
     const selectedProjects = projects
-      .filter(project => !project.tags.includes("learning"))
+      .filter(project => !excludedTag.some(tag => project.tags.includes(tag)))
       .slice(0, count);
     selectedProjects.forEach(project => set.add(project.full_name));
   }

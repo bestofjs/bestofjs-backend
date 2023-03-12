@@ -18,12 +18,14 @@ async function processProjects({
   if (options.limit) {
     limit = options.limit;
   }
+  const skip = options.skip;
 
   const actualQuery = normalizeQuery(getQuery(query, options));
 
   const projects = await fetchProjects({
     query: actualQuery,
     context,
+    skip,
     sort,
     limit
   });
@@ -94,6 +96,7 @@ async function fetchProjects({
   query,
   context,
   limit = 0,
+  skip = 0,
   sort = { createdAt: -1 }
 }) {
   const {
@@ -115,8 +118,8 @@ async function fetchProjects({
     // })
     .populate({ path: "tags", select: { name: 1, code: 1, _id: 0 } })
     .sort(sort)
+    .skip(skip)
     .limit(limit);
-  // .skip(1700);
   // .lean(); we use `toString()` Mongoose models
 }
 
