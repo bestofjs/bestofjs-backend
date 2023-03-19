@@ -10,3 +10,6 @@ jobs:
           node-version: '16'
       - run: npm install
       - run: node run cli/tasks/projects/update-package-data.task.js --limit 100
+      - env:
+        MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}
+
