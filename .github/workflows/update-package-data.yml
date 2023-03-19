@@ -3,8 +3,6 @@ on: push
 jobs:
   update-package-data:
     runs-on: ubuntu-latest
-    environment:
-      MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -12,4 +10,5 @@ jobs:
           node-version: '16'
       - run: npm install
       - run: node run cli/tasks/projects/update-package-data.task.js --limit 100
-
+        env:
+          MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}
