@@ -1,0 +1,29 @@
+name: Update package data
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'verbose'
+        type: choice
+        options:
+        - info
+        - verbose
+        - debug
+      limit:
+        description: 'Number of projects to process'
+        required: false
+        type: number
+jobs:
+  update-package-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: npm install
+      - run: node run cli/tasks/projects/update-package-data.task.js --limit ${{ inputs.limit }} --loglevel ${{ inputs.loglevel }} 
+        env:
+          MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}

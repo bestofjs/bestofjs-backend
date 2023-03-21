@@ -9,24 +9,41 @@ const filterProjects = require("./filter-projects");
 const CURRENT_YEAR = 2022;
 
 module.exports = createTask("build-rising-stars", async context => {
-  const { processProjects, saveJSON, starStorage, logger } = context;
+  const {
+    processProjects,
+    saveJSON,
+    starStorage,
+    models: { Tag },
+    logger
+  } = context;
+
+  const allTags = await fetchTags(Tag);
 
   const categories = await fetchCategories(CURRENT_YEAR);
 
-  const { data: projects } = await processProjects({
+  const { data: allProjects } = await processProjects({
     handler: readProject({ starStorage }),
     query: { deprecated: false, disabled: false },
     sort: { createdAt: 1 }
   });
 
-  const sortedProjects = orderBy(projects, "delta", "desc");
+  const sortedProjects = orderBy(allProjects, "delta", "desc");
 
-  const result = filterProjects(sortedProjects, categories);
+  const projects = filterProjects(sortedProjects, categories);
 
-  logger.info(`${result.length} projects included in Rising Stars`);
+  const tags = allTags.filter(tag => isTagIncluded(tag.code, projects));
+
+  logger.info(
+    `${projects.length} projects included in Rising Stars, ${tags.length} tags`
+  );
 
   await saveJSON(
-    { date: new Date(), count: result.length, projects: result },
+    {
+      date: new Date(),
+      count: projects.length,
+      projects,
+      tags
+    },
     "rising-stars.json"
   );
 });
@@ -74,6 +91,15 @@ const readProject = ({ starStorage }) => async project => {
   };
 };
 
+async function fetchTags(Tag) {
+  const fields = {
+    code: 1,
+    name: 1,
+    _id: 0 // required to omit _id field
+  };
+  return await Tag.find({}, fields).sort({ name: 1 });
+}
+
 async function fetchCategories(year) {
   const filepath = path.resolve(
     process.cwd(),
@@ -112,4 +138,8 @@ function getFinalSnapshot(snapshots, year) {
   const reversedSnapshots = snapshots.slice();
   reversedSnapshots.reverse();
   return reversedSnapshots.find(snapshot => snapshot.year === year);
+}
+
+function isTagIncluded(tagCode, projects) {
+  return !!projects.find(project => project.tags.includes(tagCode));
 }

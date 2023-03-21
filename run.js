@@ -16,6 +16,6 @@ const taskFilePath = path.resolve("./", firstArgument);
 
 const task = require(taskFilePath);
 
-console.log(`Running "${task.name}" task`, options); // eslint-disable-line no-console
+console.log(`Running "${task.name}" task`); // eslint-disable-line no-console
 
 runTasks(task);
