@@ -1,15 +1,11 @@
 const pProps = require("p-props");
-const { mapValues, get } = require("lodash");
+const { mapValues } = require("lodash");
 
 const createNpmClient = require("../../../core/npm/npm-api-client");
 const npmClient = createNpmClient();
 
 const { createTask } = require("../../task-runner");
-const {
-  getBundleData,
-  getPackageSizeData,
-  formatDependencies
-} = require("./package-data-api");
+const { formatDependencies } = require("./package-data-api");
 
 module.exports = createTask("update-package-data", async context => {
   const { processProjects } = context;
@@ -26,8 +22,6 @@ const updatePackageData = context => async project => {
 
   const requests = {
     npm: fetchNpmRegistryData,
-    // bundle: fetchBundleData,
-    // packageSize: fetchPackageSizeData,
     downloads: fetchDownloadData
   };
 
@@ -73,95 +67,6 @@ const fetchNpmRegistryData = ({ logger }) => async project => {
   logger.debug("NPM data", npmData);
   return npmData;
 };
-
-const fetchBundleData = ({ logger }) => async project => {
-  // if (!isBundleUpdateNeeded(project)) {
-  //   logger.debug(`Bundle size data already up-to-date for ${project.name}`);
-  //   return null;
-  // }
-  logger.debug("Fetch data about the bundle size", {
-    project: project.name,
-    version: get(project, "npm.version"),
-    previousVersion: get(project, "bundle.version") || "(nothing)"
-  });
-
-  try {
-    const bundleData = await getBundleData(project.npm.name);
-    const bundle = {
-      name: bundleData.name,
-      // dependencyCount: bundleData.dependencyCount,
-      gzip: bundleData.size.rawCompressedSize,
-      size: bundleData.size.rawUncompressedSize,
-      // version: bundleData.version
-    };
-    logger.debug("Bundle data to be saved", bundle);
-    return { ...bundle, updatedAt: new Date() };
-  } catch (error) {
-    return {
-      errorMessage: error.message || "Unexpected error",
-      updatedAt: new Date()
-    };
-  }
-};
-
-const isBundleUpdateNeeded = project => {
-  // const isError = !!get(project.toObject(), "bundle.errorMessage");
-  // if (isError) return false; // don't try to fetch data if there was a build error previously
-  const projectJson = project.toObject();
-  const npmVersion = get(projectJson, "npm.version");
-  const npmName = get(projectJson, "npm.name");
-  const bundleVersion = get(projectJson, "bundle.version");
-  const bundleName = get(projectJson, "bundle.name");
-  return npmVersion !== bundleVersion || bundleName !== npmName;
-};
-
-const fetchPackageSizeData = ({ logger }) => async project => {
-  const version = get(project, "npm.version");
-  if (!isPackageSizeUpdateNeeded({ project, logger })) {
-    logger.debug(`Package size data already up-to-date for ${project.name}`);
-    return null;
-  }
-  logger.debug("Fetch data about the package size", {
-    project: project.name,
-    version,
-    previousVersion: get(project, "packageSize.version") || "(nothing)"
-  });
-
-  try {
-    const packageSizeData = await getPackageSizeData(project.npm.name, version);
-    const isError = !!packageSizeData.error;
-    const packageSize = isError
-      ? { errorMessage: packageSizeData.error.message }
-      : {
-          publishSize: packageSizeData.publishSize,
-          installSize: packageSizeData.installSize,
-          version
-        };
-    logger.debug("Package size data to be saved", packageSize);
-    return Object.assign({}, packageSize, { updatedAt: new Date() });
-  } catch (error) {
-    logger.error(
-      `Unable to get package size data for ${project.toString()} ${
-        error.message
-      }`
-    );
-    return { errorMessage: error.message || "Error!" };
-  }
-};
-
-function isPackageSizeUpdateNeeded({ project, logger }) {
-  // const isError = !!get(project.toObject(), "packageSize.errorMessage");
-  // if (isError) {
-  //   logger.debug(
-  //     `Don't fetch package size data because of the previous error ${project.name}`
-  //   );
-  //   return false; // don't try to fetch data if there was a build error previously
-  // }
-  const projectJson = project.toObject();
-  const npmVersion = get(projectJson, "npm.version");
-  const projectSizeVersion = get(projectJson, "packageSize.version");
-  return npmVersion !== projectSizeVersion;
-}
 
 const fetchDownloadData = ({ logger }) => async project => {
   const downloadCount = await npmClient.fetchMonthlyDownloadCount(
