@@ -23,9 +23,9 @@ async function buildMainList(allProjects, context) {
   const projects = allProjects
     .filter(item => !!item) // remove null items that might be created if error occurred
     .filter(project => project.trends.daily !== undefined) // new projects need to include at least the daily trend
-    .filter(project => isFeaturedProject(project) || !isColdProject(project))
+    .filter(project => isPromotedProject(project) || !isColdProject(project))
     .filter(
-      project => isFeaturedProject(project) || !isInactiveProject(project)
+      project => isPromotedProject(project) || !isInactiveProject(project)
     )
     .map(compactProjectData); // we don't need the `version` in `projects.json`
 
@@ -58,7 +58,7 @@ async function buildFullList(allProjects, context) {
 
 function compactProjectData(project) {
   const compactData = {
-    ...omit(project, ["added_at"]),
+    ...omit(project, ["added_at", "status"]),
     description: truncate(project.description, 75)
   };
   return compactData;
@@ -92,7 +92,9 @@ const readProject = ({ starStorage }) => async project => {
     pushed_at: formatDate(project.github.last_commit),
     owner_id: project.github.owner_id,
     created_at: formatDate(project.github.created_at),
-    added_at: project.createdAt
+    // The following fields will not be included in JSON output
+    added_at: project.createdAt,
+    status: project.status
   };
 
   const url = project.getURL();
@@ -157,10 +159,9 @@ function isInactiveProject(project) {
   return Math.floor(getYearsSinceLastCommit(project)) > 0 && delta < 100;
 }
 
-// a project is considered as "Featured" if it has a specific logo
-// we want to show them in the UI even if they are cold or inactive
-function isFeaturedProject(project) {
-  return !!project.logo;
+// we want to show "promoted" projects in the UI even if they are cold or inactive
+function isPromotedProject(project) {
+  return project.status === "promoted";
 }
 
 function getDailyHotProjects(projects) {

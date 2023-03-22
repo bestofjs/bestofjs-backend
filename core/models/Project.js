@@ -24,6 +24,9 @@ const fields = {
   deprecated: {
     type: Boolean
   },
+  status: {
+    type: String
+  },
   github: {
     name: String,
     full_name: String,
