@@ -12,9 +12,10 @@ on:
         - verbose
         - debug
       limit:
-        description: 'Number of projects to process'
+        description: 'Number of projects to process (mainly for debugging, keep the default value of 0 to process everything)'
         required: false
         type: number
+        default: 0
 jobs:
   update-package-data:
     runs-on: ubuntu-latest

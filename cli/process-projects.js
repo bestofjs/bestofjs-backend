@@ -33,10 +33,15 @@ async function processProjects({
   const count = projects.length;
 
   const mapper = async (project, index) => {
-    logger.verbose(`Processing #${index + 1} ${project.toString()}`);
+    logger.debug(`Processing #${index + 1} ${project.toString()}`);
     try {
+      const start = Date.now();
       const result = await handler(project, context);
-      logger.debug(`Processed ${project.toString()}`, result); // only log the result at the "debug" level
+      const duration = Date.now() - start;
+      logger.verbose(
+        `Processed #${index + 1} ${project.toString()} in ${prettyMs(duration)}`,
+        result.meta
+      ); // only log the result at the "debug" level
       if (!(result && result.meta))
         throw new Error(
           "The project handler should return an object with a key `meta`"

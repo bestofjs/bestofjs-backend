@@ -12,7 +12,7 @@ module.exports = createTask("update-package-data", async context => {
 
   await processProjects({
     handler: updatePackageData(context),
-    query: { deprecated: false, "npm.name": { $ne: "" } },
+    query: { deprecated: false, "npm.name": { $exists: true, $ne: "" } },
     concurrency: 1
   });
 });
@@ -24,6 +24,8 @@ const updatePackageData = context => async project => {
     npm: fetchNpmRegistryData,
     downloads: fetchDownloadData
   };
+
+  const previousVersion = project.npm.version;
 
   const result = await pProps(mapValues(requests), async (fetchFn, key) => {
     try {
@@ -44,7 +46,14 @@ const updatePackageData = context => async project => {
   if (!readonly) {
     await project.save();
   }
-  return { meta: { updated: true, ...mapValues(result, value => !!value) } };
+  const meta = {
+    updated: true,
+    deprecated: result.npm.deprecated,
+    versionHasChanged:
+      !!previousVersion && result.npm.version !== previousVersion
+  };
+
+  return { meta };
 };
 
 const fetchNpmRegistryData = ({ logger }) => async project => {
