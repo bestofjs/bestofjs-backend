@@ -1,11 +1,8 @@
-const pProps = require("p-props");
-const { mapValues } = require("lodash");
-
 const createNpmClient = require("../../../core/npm/npm-api-client");
-const npmClient = createNpmClient();
-
 const { createTask } = require("../../task-runner");
 const { formatDependencies } = require("./package-data-api");
+
+const npmClient = createNpmClient();
 
 module.exports = createTask("update-package-data", async context => {
   const { processProjects } = context;
@@ -20,37 +17,23 @@ module.exports = createTask("update-package-data", async context => {
 const updatePackageData = context => async project => {
   const { logger, readonly } = context;
 
-  const requests = {
-    npm: fetchNpmRegistryData,
-    downloads: fetchDownloadData
-  };
-
   const previousVersion = project.npm.version;
 
-  const result = await pProps(mapValues(requests), async (fetchFn, key) => {
-    try {
-      return await fetchFn(context)(project);
-    } catch (error) {
-      context.logger.debug(`Error fetching "${key}" data: ${error.message}`);
-      return null;
-    }
-  });
-  Object.entries(result).forEach(([key, value]) => {
-    // ignore `null` values coming from errors
-    if (value) {
-      project[key] = value;
-    }
-  });
+  const npmData = await fetchNpmRegistryData(context)(project)
+  const downloadData = await fetchDownloadData(context)(project)
 
-  logger.debug(readonly ? "Readonly mode" : "Project saved", result);
+  project.npm = npmData
+  project.downloads = downloadData
+
+  logger.debug(readonly ? "Readonly mode" : "Saving...", {npmData, downloadData});
   if (!readonly) {
     await project.save();
   }
   const meta = {
     updated: true,
-    deprecated: result.npm.deprecated,
+    deprecated: npmData.deprecated,
     versionHasChanged:
-      !!previousVersion && result.npm.version !== previousVersion
+      !!previousVersion && npmData.version !== previousVersion
   };
 
   return { meta };
@@ -77,7 +60,7 @@ const fetchNpmRegistryData = ({ logger }) => async project => {
   return npmData;
 };
 
-const fetchDownloadData = ({ logger }) => async project => {
+const fetchDownloadData = () => async project => {
   const downloadCount = await npmClient.fetchMonthlyDownloadCount(
     project.npm.name
   );
