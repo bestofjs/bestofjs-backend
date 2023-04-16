@@ -22,7 +22,7 @@ const backendTags = [
   "express",
   "fullstack",
   "iot",
-  "linter",
+  "lint",
   "meteor",
   "microservice",
   "middleware",
