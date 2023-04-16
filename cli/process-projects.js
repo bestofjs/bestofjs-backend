@@ -39,7 +39,9 @@ async function processProjects({
       const result = await handler(project, context);
       const duration = Date.now() - start;
       logger.verbose(
-        `Processed #${index + 1} ${project.toString()} in ${prettyMs(duration)}`,
+        `Processed #${index + 1} ${project.toString()} in ${prettyMs(
+          duration
+        )}`,
         result.meta
       ); // only log the result at the "debug" level
       if (!(result && result.meta))
@@ -73,9 +75,13 @@ async function processProjects({
     },
     { meta: {}, data: [] }
   );
-  const duration = new Date() - t0;
+  const totalDuration = new Date() - t0;
+  const averageDuration = totalDuration / count;
+
   logger.info(
-    `${count} projects processed in ${prettyMs(duration)}`,
+    `${count} projects processed in ${prettyMs(totalDuration)} (Average: ${prettyMs(
+      averageDuration
+    )})`,
     aggregatedResult.meta
   );
   return aggregatedResult;
