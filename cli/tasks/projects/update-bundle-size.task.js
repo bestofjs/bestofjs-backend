@@ -1,49 +1,51 @@
 const got = require("got");
 const pTimeout = require("p-timeout");
 
-const timeout = 3000; // prevent API request from taking more than N milliseconds
+const timeout = 100e3; // prevent API request from taking more than N milliseconds
 
 const { createTask } = require("../../task-runner");
 
 const backendTags = [
-  "test",
-  "nodejs-framework",
-  "cli",
-  "ssg",
-  "build",
+  "archive",
+  "astro",
   "auto",
-  "express",
-  "serverless",
-  "nextjs",
-  "deno",
-  "bun",
-  "fullstack",
   "boilerplate",
-  "websocket",
-  "meteor",
-  "mongodb",
-  "runtime",
-  "module",
-  "linter",
+  "build",
+  "bun",
+  "cli",
+  "cron",
+  "css-tool",
+  "deno",
+  "dependency",
   "desktop",
-  "scaffolding",
+  "ecommerce",
+  "express",
+  "fullstack",
+  "iot",
+  "linter",
+  "meteor",
   "microservice",
   "middleware",
-  "archive",
-  "orm",
-  "queue",
-  "css-tool",
-  "scraping",
+  "module",
+  "mongodb",
   "monorepo",
+  "nextjs",
+  "nodejs-framework",
   "npm-scripts",
   "nvm",
+  "orm",
   "package",
-  "iot",
-  "astro",
-  "ecommerce",
   "process",
+  "queue",
+  "runtime",
+  "scaffolding",
+  "scraping",
   "screenshot",
-  "css-tool"
+  "security",
+  "serverless",
+  "ssg",
+  "test",
+  "websocket"
 ];
 
 module.exports = createTask("update-package-data", async context => {
@@ -51,13 +53,13 @@ module.exports = createTask("update-package-data", async context => {
 
   await processProjects({
     handler: updateBundleSizeData(context),
-    query: { deprecated: false, "npm.name": { $ne: "" } },
-    concurrency: 1
+    query: { deprecated: false, "npm.name": { $exists: true, $ne: "" } },
+    concurrency: 5
   });
 });
 
 const updateBundleSizeData = context => async project => {
-  const { logger } = context;
+  const { logger, readonly } = context;
   if (!canRunInBrowser(project)) {
     return { meta: { updated: false, backendProject: true } };
   }
@@ -66,18 +68,34 @@ const updateBundleSizeData = context => async project => {
     return { meta: { updated: false, updateNotNeeded: true } };
   }
 
-  const bundleData = await fetchBundleData(project.npm.name);
-  const bundleDataToBeSaved = {
-    gzip: bundleData.size.rawCompressedSize,
-    size: bundleData.size.rawUncompressedSize,
-    version: extractVersion(bundleData.version)
-  };
+  const packageName = project.npm.name;
+  const { data, duration, error, hasTimedOut } = await fetchBundleData(
+    project.npm.name
+  );
+  const bundleDataToBeSaved = data
+    ? {
+        name: packageName,
+        version: extractVersion(data.version),
+        gzip: data.size.rawCompressedSize,
+        size: data.size.rawUncompressedSize,
+        updatedAt: Date.now(),
+        duration
+      }
+    : { errorMessage: hasTimedOut ? "timeout" : error };
 
-  logger.debug(project.npm.name, bundleDataToBeSaved);
   project.bundle = bundleDataToBeSaved;
-  await project.save();
+  logger.debug(readonly ? "Readonly mode" : "Saving...", bundleDataToBeSaved);
+  if (!readonly) {
+    await project.save();
+  }
 
-  return { meta: { updated: true } };
+  return {
+    meta: {
+      updated: Boolean(data),
+      error: Boolean(error),
+      hasTimedOut: Boolean(hasTimedOut)
+    }
+  };
 };
 
 function needsUpdate(project) {
@@ -107,13 +125,14 @@ function isBackendProject(project) {
 async function fetchBundleData(packageName) {
   const url = `https://deno.bundlejs.com/?q=${encodeURIComponent(packageName)}`;
   try {
-    const json = await pTimeout(got(url).json(), timeout);
-    return json;
+    const start = Date.now();
+    const data = await pTimeout(got(url).json(), timeout);
+    const duration = Date.now() - start;
+    return { data, duration };
   } catch (error) {
     if (error instanceof pTimeout.TimeoutError) {
-      throw error;
+      return { hasTimedOut: timeout };
     }
-    // Internal Server Errors (no valid JSON)
-    throw new Error(`Invalid response from ${url}`);
+    return { error: error.message };
   }
 }

@@ -55,11 +55,12 @@ const fields = {
   },
   bundle: {
     name: String,
-    dependencyCount: Number,
+    version: String,
     gzip: Number,
     size: Number,
-    version: String,
-    errorMessage: String
+    errorMessage: String,
+    updatedAt: Date,
+    duration: Number,
   },
   packageSize: {
     name: String,
@@ -78,7 +79,8 @@ const schema = new mongoose.Schema(fields, {
 });
 
 schema.methods.toString = function() {
-  return `${this.github.full_name} ${this._id}`;
+  // return `${this.github.full_name} ${this._id}`;
+  return `${this.name},${this.npm.name || ""}`;
 };
 
 // For some projects, override the description from GitHub that is not really relevant
