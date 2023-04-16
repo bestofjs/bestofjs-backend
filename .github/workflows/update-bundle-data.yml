@@ -1,4 +1,4 @@
-name: Update package data
+name: Update bundle data
 on:
   workflow_dispatch:
     inputs:
