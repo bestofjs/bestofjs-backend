@@ -16,5 +16,8 @@
   ],
   "env": {
     "DB_ENV": "production"
+  },
+  "git": {
+    "deploymentEnabled": false
   }
 }
