@@ -1,4 +1,4 @@
-name: Update bundle data
+name: Update bundle size
 on:
   workflow_dispatch:
     inputs:
@@ -28,6 +28,6 @@ jobs:
         with:
           node-version: '16'
       - run: npm install
-      - run: node run cli/tasks/projects/update-bundle-data.task.js --limit ${{ inputs.limit }} --skip ${{ inputs.skip }} --loglevel ${{ inputs.loglevel }} 
+      - run: node run cli/tasks/projects/update-bundle-size.task.js --limit ${{ inputs.limit }} --skip ${{ inputs.skip }} --loglevel ${{ inputs.loglevel }} 
         env:
           MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}
