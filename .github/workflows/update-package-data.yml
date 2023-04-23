@@ -1,5 +1,7 @@
 name: Update package data
 on:
+  schedule:
+    - cron: "0 22 * * *"
   workflow_dispatch:
     inputs:
       logLevel:
