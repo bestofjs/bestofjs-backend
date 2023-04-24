@@ -27,6 +27,6 @@ jobs:
         with:
           node-version: '16'
       - run: npm install
-      - run: node run cli/tasks/projects/update-package-data.task.js --limit ${{ inputs.limit }} --loglevel ${{ inputs.loglevel }} 
+      - run: node run cli/tasks/projects/update-package-data.task.js --limit ${{ inputs.limit || 0 }} --loglevel ${{ inputs.logLevel || 'info' }} 
         env:
           MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}

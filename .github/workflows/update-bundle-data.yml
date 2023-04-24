@@ -30,6 +30,6 @@ jobs:
         with:
           node-version: '16'
       - run: npm install
-      - run: node run cli/tasks/projects/update-bundle-size.task.js --limit ${{ inputs.limit }} --skip ${{ inputs.skip }} --loglevel ${{ inputs.loglevel }} 
+      - run: node run cli/tasks/projects/update-bundle-size.task.js --limit ${{ inputs.limit || 0 }} --skip ${{ inputs.skip || 0 }} --loglevel ${{ inputs.logLevel || 'info' }} 
         env:
           MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}
