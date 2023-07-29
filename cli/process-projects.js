@@ -76,7 +76,7 @@ async function processProjects({
     { meta: {}, data: [] }
   );
   const totalDuration = new Date() - t0;
-  const averageDuration = totalDuration / count;
+  const averageDuration = count > 0 ? totalDuration / count : 0;
 
   logger.info(
     `${count} projects processed in ${prettyMs(totalDuration)} (Average: ${prettyMs(
