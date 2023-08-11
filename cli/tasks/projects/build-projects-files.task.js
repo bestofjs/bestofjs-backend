@@ -125,6 +125,11 @@ const readProject = ({ starStorage }) => async project => {
     data.aliases = project.aliases;
   }
 
+  // Flag assigned to projects included in the "/featured" page
+  if (project.status === 'featured') {
+    data.isFeatured = true;
+  }
+
   return {
     data,
     meta: {
