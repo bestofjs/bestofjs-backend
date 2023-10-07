@@ -3,20 +3,21 @@ const got = require("got");
 const { createTask } = require("../task-runner");
 
 module.exports = createTask("daily-build-webhook", async context => {
-  await invalidateWebAppCacheURL(context);
+  await invalidateWebAppCacheByTag(context, 'all-projects');
+  await invalidateWebAppCacheByTag(context, 'project-details');
   await triggerWebAppBuild(context);
 });
 
-async function invalidateWebAppCacheURL(context) {
+async function invalidateWebAppCacheByTag(context, tag) {
   const { logger } = context;
   const rootURL = "https://bestofjs.org"; // TODO: use env variable?
-  const invalidateCacheURL = rootURL + `/api/revalidate?tag=all-projects`;
+  const invalidateCacheURL = `${rootURL}/api/revalidate?tag=${tag}`;
   try {
     const result = await got(invalidateCacheURL).json();
     logger.debug(result);
-    logger.info("Invalid cache request sent!");
+    logger.info(`Invalid cache request for "${tag}" tag sent!`);
   } catch (error) {
-    throw new Error(`Unable to invalid the cache ${error.message}`);
+    throw new Error(`Unable to invalid the cache for "${tag}" tag ${error.message}`);
   }
 }
 
