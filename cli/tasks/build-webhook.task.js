@@ -5,6 +5,7 @@ const { createTask } = require("../task-runner");
 module.exports = createTask("daily-build-webhook", async context => {
   await invalidateWebAppCacheByTag(context, 'all-projects');
   await invalidateWebAppCacheByTag(context, 'project-details');
+  await invalidateWebAppCacheByTag(context, 'package-downloads');
   await triggerWebAppBuild(context);
 });
 
