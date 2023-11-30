@@ -126,7 +126,7 @@ const readProject = ({ starStorage }) => async project => {
   }
 
   // Flag assigned to projects included in the "/featured" page
-  if (project.status === 'featured') {
+  if (project.status === "featured") {
     data.isFeatured = true;
   }
 
@@ -141,6 +141,7 @@ const readProject = ({ starStorage }) => async project => {
 function fetchTags({ models: { Tag } }) {
   const fields = {
     code: 1,
+    description: 1,
     name: 1,
     _id: 0 // required to omit _id field
   };
