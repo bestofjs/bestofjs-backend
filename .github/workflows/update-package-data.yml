@@ -5,16 +5,16 @@ on:
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'
+        description: "Log level"
         required: true
-        default: 'verbose'
+        default: "verbose"
         type: choice
         options:
-        - info
-        - verbose
-        - debug
+          - info
+          - verbose
+          - debug
       limit:
-        description: 'Number of projects to process (mainly for debugging, keep the default value of 0 to process everything)'
+        description: "Number of projects to process (mainly for debugging, keep the default value of 0 to process everything)"
         required: false
         type: number
         default: 0
@@ -22,11 +22,18 @@ jobs:
   update-package-data:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Code Checkout
+        uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '16'
-      - run: npm install
-      - run: node run cli/tasks/projects/update-package-data.task.js --limit ${{ inputs.limit || 0 }} --loglevel ${{ inputs.logLevel || 'info' }} 
+          node-version: 18
+      - name: Install PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.11.0
+      - name: Install Dependencies
+        shell: bash
+        run: pnpm install
+      - run: node run cli/tasks/projects/update-package-data.task.js --limit ${{ inputs.limit || 0 }} --loglevel ${{ inputs.logLevel || 'info' }}
         env:
           MONGO_URI_PRODUCTION: ${{ secrets.MONGO_URI_PRODUCTION }}
