@@ -18,7 +18,7 @@ function heroToJSON(hero) {
     avatar: hero.github.avatar_url,
     followers: hero.github.followers,
     blog: getHeroHomepage(hero),
-    name: hero.github.name,
+    name: hero.name || hero.github.name, // the `name` property is used to override the GitHub name (E.g. `mrdoob` => `Ricardo Cabello`)
     projects: hero.projects.map(project =>
       slugify(project.name, { lower: true, remove: /[.']/g })
     ),
