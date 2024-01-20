@@ -175,9 +175,19 @@ function computeTrends(snapshots, referenceDate) {
     return referenceSnapshot.stars - snapshot.stars;
   };
 
+  const getDailyDelta = () => {
+    if (snapshots.length < 2) return undefined;
+    let snapshot = findSnapshotDaysAgo(1, true);
+    if (snapshot) return referenceSnapshot.stars - snapshot.stars;
+    snapshot = findSnapshotDaysAgo(2, true);
+    if (snapshot)
+      return Math.ceil((referenceSnapshot.stars - snapshot.stars) / 2);
+    return undefined;
+  };
+
   return {
     // for daily and weekly trends, we need to snapshots taken exactly 1 day and 7 days ago
-    daily: getDelta(1, true),
+    daily: getDailyDelta(),
     weekly: getDelta(7, true),
     // for other trends, we are less strict to handle situations where we don't have snapshots for all the days
     monthly: getDelta(30, false),
